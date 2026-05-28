@@ -1,0 +1,33 @@
+{
+  "name": "medibridge-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/vichayabhas/medibridge-backend#readme",
+  "bugs": {
+    "url": "https://github.com/vichayabhas/medibridge-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vichayabhas/medibridge-backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.16.1",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dayjs": "^1.11.21",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.3",
+    "nodemailer": "^8.0.9",
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.3"
+  }
+}
