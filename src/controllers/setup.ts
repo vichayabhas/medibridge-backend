@@ -158,14 +158,18 @@ export const dataDate = {
 export const dateNow = {
   type: Date,
   default: Date.now(),
-};
+} as const;
 export const reqNumber = {
   type: Number,
   required: true,
-};
+} as const;
 export function getDefaultBoolean(init: boolean) {
   return {
     type: Boolean,
     default: init,
   };
 }
+export const dataStringDefault = {
+  type: String,
+  default: "",
+} as const;
