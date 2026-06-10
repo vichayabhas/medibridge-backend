@@ -4,6 +4,7 @@ import {
   reqNumber,
   arrayString,
   getDefaultBoolean,
+  arrayObjectId,
 } from "../controllers/setup";
 import { genders } from "./interface";
 
@@ -24,6 +25,7 @@ const schema = new mongoose.Schema({
   isBreastfeeding: getDefaultBoolean(false),
   bloodType: dataString,
   symptoms: dataString,
+  patientHandoffIds: arrayObjectId,
   createAt: {
     type: Date,
     default: Date.now,

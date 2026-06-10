@@ -19,6 +19,22 @@ import axios from "axios";
 /**
  * Configuration for Daily.co API
  */
+
+// interface CreateMeetingTokenPayload {
+//   properties: {
+//     room_name: string;
+//     user_name: string;
+//     user_id?: string;
+//     exp?: number;
+//     is_owner?: boolean;
+//     start_video_off?: boolean;
+//     start_audio_off?: boolean;
+//     enable_screenshare?: boolean;
+//     enable_recording?: boolean | "cloud" | "cloud-audio-only" | "local" | "raw-tracks";
+//     eject_at_token_exp?: boolean;
+//     close_tab_on_exit?: boolean;
+//   };
+// }
 interface DailyConfig {
   apiKey: string;
   baseUrl?: string;
@@ -58,8 +74,13 @@ export interface CreateRoomResponse {
   success: boolean;
   roomUrl: string;
   roomId: string;
+  roomName: string;
   expiresAt?: string;
   message?: string;
+}
+export interface CreateMeetingTokenResponse {
+  success: boolean;
+  token: string;
 }
 
 /**
@@ -131,7 +152,8 @@ export class DailyCoClient {
         success: true,
         roomUrl: room.url,
         roomId: room.id,
-        expiresAt: room.created_at,
+        roomName: room.name,
+        expiresAt: expiresAt ? new Date(expiresAt * 1000).toISOString() : undefined,
         message: "Room created successfully",
       };
     } catch (error) {
@@ -150,6 +172,60 @@ export class DailyCoClient {
       );
     }
   }
+  /**
+   * Create a meeting token for a private Daily room.
+   */
+  async createMeetingToken(
+    roomName: string,
+    options: {
+      userName: string;
+      userId?: string;
+      expiresAt?: number;
+      isOwner?: boolean;
+      startVideoOff?: boolean;
+      startAudioOff?: boolean;
+      enableScreenshare?: boolean;
+      enableRecording?: boolean | "cloud" | "cloud-audio-only" | "local" | "raw-tracks";
+      closeTabOnExit?: boolean;
+    }
+  ): Promise<CreateMeetingTokenResponse> {
+    try {
+      const response = await this.client.post<{ token: string }>("/meeting-tokens", {
+        properties: {
+          room_name: roomName,
+          user_name: options.userName,
+          user_id: options.userId,
+          exp: options.expiresAt,
+          is_owner: options.isOwner ?? false,
+          start_video_off: options.startVideoOff ?? false,
+          start_audio_off: options.startAudioOff ?? false,
+          enable_screenshare: options.enableScreenshare ?? false,
+          enable_recording: options.enableRecording,
+          eject_at_token_exp: true,
+          close_tab_on_exit: options.closeTabOnExit ?? false,
+        },
+      });
+
+      return {
+        success: true,
+        token: response.data.token,
+      };
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const err = error as any;
+      console.error("Failed to create Daily meeting token:", {
+        status: err.response?.status,
+        message: err.response?.data?.error || err.message,
+      });
+
+      throw new Error(
+        `Failed to create Daily meeting token: ${
+          err.response?.data?.error || err.message
+        }`
+      );
+    }
+  }
+
 
   /**
    * Delete a Daily.co room

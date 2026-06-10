@@ -6,6 +6,7 @@ import {
   arrayString,
   getDefaultBoolean,
   dataId,
+  arrayObjectId,
 } from "../controllers/setup";
 import { verificationStatuses } from "./interface";
 
@@ -15,7 +16,16 @@ const schema = new mongoose.Schema({
   latitude: reqNumber,
   longitude: reqNumber,
   phone: dataString,
-  openingHours: mongoose.Schema.Types.Mixed,
+  openingHours: {
+    type: [
+      {
+        day: reqNumber,
+        open: dataString,
+        close: dataString,
+      },
+    ],
+    default: [],
+  },
   verificationStatus: {
     type: String,
     enum: verificationStatuses,
@@ -35,5 +45,6 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  pharmacistIds: arrayObjectId,
 });
 export default mongoose.model("Pharmacy", schema);

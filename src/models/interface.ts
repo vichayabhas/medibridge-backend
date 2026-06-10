@@ -1,3 +1,5 @@
+import { Id } from "./configTypes";
+
 export const userRoles = [
   "patient",
   "pharmacist",
@@ -70,3 +72,171 @@ export type NotificationType = (typeof notificationTypes)[number];
 export type Gender = (typeof genders)[number];
 export type SenderType = (typeof senderTypes)[number];
 export type ArticleStatus = (typeof articleStatuses)[number];
+export type AuthRoleSeed = {
+  value: UserRole;
+  label: string;
+};
+
+export type AuthUser = {
+  _id: Id;
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  createdAt: Date;
+};
+
+export type LoginInput = {
+  email: string;
+  password: string;
+  role: UserRole;
+};
+
+export type RegisterInput = {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: UserRole;
+  avatarUrl: string;
+};
+export interface ArticleReady {
+  _id: Id;
+  title: string;
+  category: string;
+  coverImage: string;
+  excerpt: string;
+  body: string;
+  authorId: Id;
+  authorName: string;
+  isAIGenerated: boolean;
+  tags: string[];
+  views: number;
+  status: "pending" | "approved" | "rejected";
+  createdAt: Date;
+}
+export interface HomePageData {
+  articleReadies: ArticleReady[];
+}
+export type PatientHandoffType = {
+  _id: Id;
+  patientName: string;
+  age: number;
+  gender: string;
+  symptoms: string[];
+  duration: string;
+  conditions: string[];
+  medications: string[];
+  allergies: string[];
+  patientSummary: string;
+  aiSummary: string;
+  pharmacyId: Id;
+  pharmacistId: Id;
+  appointmentTime: Date;
+  fulfillment: string;
+  suggestedAction: string;
+  requestType: PatientRequestType;
+  telemedicineChannel: TelemedicineChannel;
+  telemedicinePatientNote: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  telemedicineCollectedData?: any;
+  telemedicineRequestTime: Date;
+  telemedicineStartTime: Date;
+  telemedicineEndTime: Date;
+  consultDurationMinutes: number;
+  status: PatientHandoffStatus;
+  createAt: Date;
+  // communicationMethod: string;
+  // pharmacistNote: string;
+  // pharmacistAction: string;
+  // assessment: string;
+  // plan?: string;
+};
+export interface PharmacistType {
+  _id: Id;
+  pharmacyId: string;
+  name: string;
+  licenseNo: string;
+  // avatar: string;
+  availability: PharmacistAvailability;
+  rating: number;
+  reviewCount: number;
+  specialties: string[];
+  // money: number;
+  methodRates: { chat: number; phone: number; video: number };
+  bookedSlots: string[];
+  consultDurations: number[];
+  experience: number;
+  workplace: string;
+  languages: string[];
+  insurance: string[];
+  bio: string;
+  nextAvailable: string;
+}
+export const socketEvents = ["new_message", "profile-sync"] as const;
+export type SocketEvent = (typeof socketEvents)[number];
+export interface ChatMessage {
+  _id: Id;
+  handoffId: string;
+  senderType: SenderType;
+  senderName?: string;
+  content: string;
+  createdAt: Date;
+  imageUrl?: string;
+  attachmentUrl?: string;
+  fileName?: string;
+}
+export interface CreateTextMessage {
+  senderType: SenderType;
+  senderName: string;
+  content: string;
+  handoffId: Id;
+}
+export type FilteredHandoffsOptions = {
+  pharmacistId: string;
+  statuses: PatientHandoffStatus[];
+  page?: number;
+  pageSize?: number;
+};
+export interface HandoffStatusCount {
+  waiting: number;
+  ongoing: number;
+  finished: number;
+}
+export type GetHandoffsOptions = {
+  page?: number;
+  pageSize?: number;
+  pharmacyId?: Id;
+  statuses?: PatientHandoffType["status"][];
+};
+export interface OpeningHours {
+  day: number; // 0=Sun, 1=Mon, ...
+  open: string; // "08:00"
+  close: string; // "22:00"
+}
+export interface Pharmacy {
+  _id: Id;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  phone: string;
+  openingHours: OpeningHours[];
+  verificationStatus: VerificationStatus;
+  rating: number;
+  reviewCount: number;
+  imageUrl: string;
+  services: string[];
+  hasDelivery: boolean;
+}
+export interface PharmacyWithDistance extends Pharmacy {
+  distance: number; // km
+  isOpen: boolean;
+  onlinePharmacists: number;
+  estimatedWaitTime: number; // minutes
+}
+export interface UpdateProfile {
+  name: string;
+  email: string;
+  phone: string;
+}

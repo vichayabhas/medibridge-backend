@@ -554,7 +554,6 @@ new mongoose.Schema({
   maxParticipants: {
     type: Number,
     default: 2,
-    required: true,
   },
   //   status text not null default 'active',
   status: {

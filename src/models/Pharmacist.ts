@@ -4,6 +4,7 @@ import {
   dataNumber,
   arrayString,
   dataStringDefault,
+  arrayObjectId,
 } from "../controllers/setup";
 import { pharmacistAvailabilities, verificationStatuses } from "./interface";
 
@@ -48,5 +49,7 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  articlesIds: arrayObjectId,
+  patientHandoffIds: arrayObjectId,
 });
 export default mongoose.model("Pharmacist", schema);
