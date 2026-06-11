@@ -1,5 +1,12 @@
 import express, { Request, Response } from "express";
-import { RegisterInput, UpdateProfile } from "../models/interface";
+import {
+  GetPharmacistData,
+  PatientHandoffType,
+  PharmacistType,
+  PharmacyWithDistance,
+  RegisterInput,
+  UpdateProfile,
+} from "../models/interface";
 import Profile from "../models/Profile";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -7,6 +14,9 @@ import { getUser } from "../middleware/auth";
 import mongoose from "mongoose";
 import { sendRes } from "./setup";
 import PatientProfile from "../models/PatientProfile";
+import Pharmacist from "../models/Pharmacist";
+import Pharmacy from "../models/Pharmacy";
+import PatientHandoff from "../models/PatientHandoff";
 type Id = mongoose.Types.ObjectId;
 export async function register(req: express.Request, res: express.Response) {
   try {
@@ -27,7 +37,6 @@ export async function register(req: express.Request, res: express.Response) {
       name,
       avatarUrl,
     });
-    console.log(req.body);
     sendTokenResponse(user._id, 200, res);
   } catch (err) {
     res.status(400).json({
@@ -45,8 +54,7 @@ export async function login(req: express.Request, res: express.Response) {
     });
     return;
   }
-  console.log(email);
-  console.log(password);
+
   const user = await Profile.findOne({
     email,
   }).select("+password");
@@ -57,7 +65,6 @@ export async function login(req: express.Request, res: express.Response) {
     });
     return;
   }
-  console.log(user);
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) {
@@ -67,7 +74,6 @@ export async function login(req: express.Request, res: express.Response) {
     });
     return;
   }
-  console.log(user._id);
   sendTokenResponse(user._id, 200, res);
 }
 const sendTokenResponse = (
@@ -75,7 +81,6 @@ const sendTokenResponse = (
   statusCode: number,
   res: express.Response,
 ) => {
-  console.log(process.env.JWT_SECRET);
   const token = jwt.sign({ id }, process.env.JWT_SECRET as jwt.Secret, {
     expiresIn: parseInt(process.env.JWT_EXPIRE || "5"),
   });
@@ -93,7 +98,6 @@ const sendTokenResponse = (
 };
 export async function getMe(req: express.Request, res: express.Response) {
   const user = await getUser(req);
-  console.log(user);
   res.status(200).json(user);
 }
 export async function checkPassword(
@@ -112,6 +116,10 @@ export async function getPatientProfileFromUserId(id: Id) {
   console.log(id);
   return await PatientProfile.findOne();
 }
+export async function getPharmacistFromUserId(id: Id) {
+  console.log(id);
+  return await Pharmacist.findOne();
+}
 export async function updateProfile(req: Request, res: Response) {
   const data: UpdateProfile = req.body;
   const user = await getUser(req);
@@ -123,4 +131,57 @@ export async function updateProfile(req: Request, res: Response) {
   // const user2 = await Profile.findById(user._id);
   // res.status(200).json({});
   sendTokenResponse(user._id, 200, res);
+}
+export async function getPharmacistData(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const pharmacist = await getPharmacistFromUserId(user._id);
+  if (!pharmacist) {
+    sendRes(res, false);
+    return;
+  }
+  let i = 0;
+  const pharmacistsWithPharmacy: PharmacistType[] = [];
+  const pharmacyRaw = await Pharmacy.findById(pharmacist.pharmacyId);
+  if (!pharmacyRaw) {
+    sendRes(res, false);
+    return;
+  }
+
+  while (i < pharmacyRaw.pharmacistIds.length) {
+    const pharmacist = await Pharmacist.findById(
+      pharmacyRaw.pharmacistIds[i++],
+    );
+    if (!pharmacist) {
+      continue;
+    }
+    pharmacistsWithPharmacy.push(pharmacist);
+  }
+  const pharmacy: PharmacyWithDistance = {
+    ...pharmacyRaw,
+    distance: 0,
+    isOpen: true,
+    onlinePharmacists: pharmacistsWithPharmacy.filter(
+      (r) => r.availability === "online",
+    ).length,
+    estimatedWaitTime: 0,
+    lat: 0,
+    lng: 0,
+  };
+  const handoffs: PatientHandoffType[] = [];
+  i = 0;
+  while (i < pharmacist.patientHandoffIds.length) {
+    const handoff = await PatientHandoff.findById(
+      pharmacist.patientHandoffIds[i++],
+    );
+    if (!handoff) {
+      continue;
+    }
+    handoffs.push(handoff);
+  }
+  const data: GetPharmacistData = { pharmacist, pharmacy, handoffs, user };
+  res.status(200).json(data)
 }

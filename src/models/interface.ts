@@ -83,7 +83,7 @@ export type AuthUser = {
   email: string;
   phone: string;
   role: UserRole;
-  createdAt: Date;
+  createAt: Date;
 };
 
 export type LoginInput = {
@@ -113,7 +113,7 @@ export interface ArticleReady {
   tags: string[];
   views: number;
   status: "pending" | "approved" | "rejected";
-  createdAt: Date;
+  createAt: Date;
 }
 export interface HomePageData {
   articleReadies: ArticleReady[];
@@ -173,7 +173,7 @@ export interface PharmacistType {
   bio: string;
   nextAvailable: string;
 }
-export const socketEvents = ["new_message", "profile-sync"] as const;
+export const socketEvents = ["new_message", "profile-sync", "handoff"] as const;
 export type SocketEvent = (typeof socketEvents)[number];
 export interface ChatMessage {
   _id: Id;
@@ -239,4 +239,25 @@ export interface UpdateProfile {
   name: string;
   email: string;
   phone: string;
+}
+export interface PharmacyType {
+  _id: Id;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  phone: string;
+  openingHours: OpeningHours[];
+  verificationStatus: "pending" | "verified" | "rejected";
+  rating: number;
+  reviewCount: number;
+  imageUrl: string;
+  services: string[];
+  hasDelivery: boolean;
+}
+export interface GetPharmacistData {
+  user: AuthUser;
+  pharmacist: PharmacistType;
+  pharmacy: PharmacyWithDistance;
+  handoffs: PatientHandoffType[];
 }

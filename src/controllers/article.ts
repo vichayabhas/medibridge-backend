@@ -1,8 +1,10 @@
 // import { Request, Response } from "express";
 
+import { Request, Response } from "express";
 import Article from "../models/Article";
 import { ArticleReady } from "../models/interface";
 import Pharmacist from "../models/Pharmacist";
+import { sendRes } from "./setup";
 
 export async function getArticles() {
   const articlesReady: ArticleReady[] = [];
@@ -36,7 +38,7 @@ export async function getArticles() {
         _id,
         category,
         coverImage,
-        createdAt: createAt,
+         createAt,
         isAIGenerated,
         title,
         excerpt,
@@ -47,6 +49,49 @@ export async function getArticles() {
       });
     }
   }
-  articlesReady.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  articlesReady.sort((a, b) => b.createAt.getTime() - a.createAt.getTime());
   return articlesReady;
+}
+export async function getArticle(req: Request, res: Response) {
+  const article = await Article.findById(req.params.id);
+  if (!article) {
+    sendRes(res, false);
+    return;
+  }
+  const pharmacist = await Pharmacist.findById(article.authorId);
+  if (!pharmacist) {
+    sendRes(res, false);
+    return;
+  }
+  const {
+    authorId,
+    _id,
+    createAt,
+    isAIGenerated,
+    category,
+    coverImage,
+    tags,
+    title,
+    excerpt,
+    views,
+    status,
+    body,
+  } = article;
+  const articleReady: ArticleReady = {
+    authorName: pharmacist.name,
+    authorId,
+    _id,
+    category,
+    coverImage,
+    createAt,
+    isAIGenerated,
+    title,
+    excerpt,
+    body,
+    tags,
+    views,
+    status,
+  };
+  await article.updateOne({ views: views + 1 });
+  res.status(200).json(articleReady);
 }

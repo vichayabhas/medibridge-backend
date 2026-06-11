@@ -22,17 +22,26 @@ interface PatientHandoffDoc {
   status: PatientHandoffType["status"];
   createdAt: Date;
   pharmacistId: Id;
+  userId: Id;
 }
 
-
-
 export async function getPatientHandoffs(
+  req: Request,
   options: GetHandoffsOptions = {},
 ): Promise<{ rows: PatientHandoffType[]; count: number | null }> {
   const { page = 1, pageSize = 20, pharmacyId, statuses } = options;
 
   try {
+    const user = await getUser(req);
+    if (!user) {
+      return { rows: [], count: null };
+    }
+    const patient = await getPatientProfileFromUserId(user._id);
+
     const filter: QueryFilter<PatientHandoffDoc> = {};
+    if (patient) {
+      filter.userId = patient._id;
+    }
 
     if (pharmacyId) {
       filter.pharmacyId = pharmacyId;
@@ -195,8 +204,12 @@ export async function savePatientHandoff(
 export async function updatePatientHandoff(
   id: string,
   update: Partial<PatientHandoffType>,
-): Promise<void> {
-  await PatientHandoff.findByIdAndUpdate(id, update);
+) {
+  const newHandoff = await PatientHandoff.findByIdAndUpdate(id, update);
+  if (!newHandoff) {
+    return [];
+  }
+  return await getHandoffsFromPharmacistId(newHandoff.pharmacistId);
 }
 
 export async function updateTelemedicineData(
@@ -240,4 +253,22 @@ export async function seedPatientHandoffs(
   while (i < seed.length) {
     await PatientHandoff.create({ ...seed[i++], userId: patientProfile._id });
   }
+}
+async function getHandoffsFromPharmacistId(id: Id) {
+  const pharmacist = await Pharmacist.findById(id);
+  if (!pharmacist) {
+    return [];
+  }
+  const handoffs: PatientHandoffType[] = [];
+  let i = 0;
+  while (i < pharmacist.patientHandoffIds.length) {
+    const handoff = await PatientHandoff.findById(
+      pharmacist.patientHandoffIds[i++],
+    );
+    if (!handoff) {
+      continue;
+    }
+    handoffs.push(handoff);
+  }
+  return handoffs;
 }
