@@ -261,3 +261,14 @@ export interface GetPharmacistData {
   pharmacy: PharmacyWithDistance;
   handoffs: PatientHandoffType[];
 }
+
+export type CreatePatientHandoff = Omit<PatientHandoffType, "_id" | "createAt">;
+export interface CreateArticle {
+  title: string;
+  category: string;
+  coverImage: string;
+  excerpt: string;
+  body: string;
+  tags: string[];
+  isAIGenerated: boolean;
+}

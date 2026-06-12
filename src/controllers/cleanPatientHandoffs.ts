@@ -3,18 +3,18 @@ import PatientHandoff from "../models/PatientHandoff";
 import { Id } from "../models/configTypes";
 import TelemedicineRoom from "../models/TelemedicineRoom";
 import Pharmacist from "../models/Pharmacist";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { getUser } from "../middleware/auth";
 import { getPatientProfileFromUserId } from "./user";
 import {
+  CreatePatientHandoff,
   FilteredHandoffsOptions,
   GetHandoffsOptions,
   HandoffStatusCount,
   PatientHandoffStatus,
   PatientHandoffType,
 } from "../models/interface";
-
-export type CreatePatientHandoff = Omit<PatientHandoffType, "_id" | "createAt">;
+import { sendRes, swop } from "./setup";
 
 interface PatientHandoffDoc {
   _id: Id;
@@ -163,7 +163,7 @@ export async function getHandoffStatusCounts(
 export async function savePatientHandoff(
   handoff: CreatePatientHandoff,
   req: Request,
-): Promise<{ success: boolean; error?: string }> {
+) {
   const user = await getUser(req);
   if (!user) {
     return { success: false, error: "กรุณาเข้าสู่ระบบก่อนส่งคำขอ" };
@@ -195,10 +195,29 @@ export async function savePatientHandoff(
         "คุณมีคำขอที่กำลังดำเนินการอยู่แล้ว กรุณารอให้เสร็จสิ้นก่อนส่งคำขอใหม่",
     };
   }
+  const pharmacist = await Pharmacist.findById(handoff.pharmacistId);
+  if (!pharmacist) {
+    return { success: false };
+  }
 
-  await PatientHandoff.create({ ...handoff, userId: patientProfile._id });
+  const newHandoff = await PatientHandoff.create({
+    ...handoff,
+    userId: patientProfile._id,
+  });
+  await pharmacist.updateOne({
+    patientHandoffIds: swop(null, newHandoff._id, pharmacist.patientHandoffIds),
+  });
+  await patientProfile.updateOne({
+    patientHandoffIds: swop(
+      null,
+      newHandoff._id,
+      patientProfile.patientHandoffIds,
+    ),
+  });
 
-  return { success: true };
+  const out = await getPatientHandoffsForPharmacist(pharmacist._id);
+
+  return out;
 }
 
 export async function updatePatientHandoff(
@@ -271,4 +290,33 @@ async function getHandoffsFromPharmacistId(id: Id) {
     handoffs.push(handoff);
   }
   return handoffs;
+}
+export async function hasPendingHandoff(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const patientProfile = await getPatientProfileFromUserId(user._id);
+  if (!patientProfile) {
+    sendRes(res, false);
+    return;
+  }
+
+  let hasPending = false;
+  let i = 0;
+  while (i < patientProfile.patientHandoffIds.length) {
+    const patientHandoff = await PatientHandoff.findById(
+      patientProfile.patientHandoffIds[i++],
+    );
+    if (!patientHandoff) {
+      continue;
+    }
+    const pendings: PatientHandoffStatus[] = ["ready", "accepted", "sent"];
+    if (pendings.includes(patientHandoff.status)) {
+      hasPending = true;
+      break;
+    }
+  }
+  sendRes(res, hasPending);
 }
