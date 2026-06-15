@@ -1,6 +1,9 @@
 import { Router } from "express";
 import {
+  // getHandoffStatusCounts,
   getPatientHandoffs,
+  getPatientHandoffsForConsultation,
+  getPharmacistShiftData,
   getRoomUrlForHandoff,
   hasPendingHandoff,
   savePatientHandoff,
@@ -21,5 +24,13 @@ router.put("/updatePatientHandoff/:id", async (req, res) => {
 router.post("/savePatientHandoff/", async (req, res) => {
   res.status(200).json(await savePatientHandoff(req.body, req));
 });
-router.get('/hasPendingHandoff/',hasPendingHandoff)
+router.get("/hasPendingHandoff/", hasPendingHandoff);
+// router.get('/getHandoffStatusCounts/:id',async(req,res)=>{
+//   res.status(200).json(await getHandoffStatusCounts(req.params.id))
+// })
+router.get(
+  "/getPatientHandoffsForConsultation/",
+  getPatientHandoffsForConsultation,
+);
+router.get("/getPharmacistShiftData/", getPharmacistShiftData);
 export default router;

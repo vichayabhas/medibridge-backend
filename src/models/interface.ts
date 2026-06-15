@@ -173,11 +173,16 @@ export interface PharmacistType {
   bio: string;
   nextAvailable: string;
 }
-export const socketEvents = ["new_message", "profile-sync", "handoff"] as const;
+export const socketEvents = [
+  "new_message",
+  "profile-sync",
+  "handoff",
+  "update-pharmacistProfile",
+] as const;
 export type SocketEvent = (typeof socketEvents)[number];
 export interface ChatMessage {
   _id: Id;
-  handoffId: string;
+  handoffId: Id;
   senderType: SenderType;
   senderName?: string;
   content: string;
@@ -260,6 +265,7 @@ export interface GetPharmacistData {
   pharmacist: PharmacistType;
   pharmacy: PharmacyWithDistance;
   handoffs: PatientHandoffType[];
+  handOffStatusCount: HandoffStatusCount;
 }
 
 export type CreatePatientHandoff = Omit<PatientHandoffType, "_id" | "createAt">;
@@ -272,3 +278,52 @@ export interface CreateArticle {
   tags: string[];
   isAIGenerated: boolean;
 }
+export interface UpdatePharmacistProfile {
+  name: string;
+  licenseNo: string;
+  availability: PharmacistAvailability;
+}
+export interface HandoffStatusCount {
+  waiting: number;
+  ongoing: number;
+  finished: number;
+}
+export interface HandoffWithMessages {
+  handoff: PatientHandoffType;
+  messages: ChatMessage[];
+}
+export interface PharmaShiftData {
+  pharmacist: PharmacistType;
+  pharmacy: PharmacyWithDistance;
+  arrayHandoffWithMessages: HandoffWithMessages[];
+}
+export type ConsultationData =
+  | {
+      handoff: PatientHandoffType;
+      isChat: true;
+      messages: ChatMessage[];
+      isPhone: false;
+      isVideo: false;
+      pharmacist: PharmacistType;
+      pharmacy: PharmacyWithDistance;
+    }
+  | {
+      handoff: PatientHandoffType;
+      isChat: false;
+      isPhone: false;
+      isVideo: true;
+      roomUrl: string | null;
+      pharmacist: PharmacistType;
+      pharmacy: PharmacyWithDistance;
+      messages: ChatMessage[];
+    }
+  | {
+      handoff: PatientHandoffType;
+      isChat: false;
+      isPhone: true;
+      isVideo: false;
+      roomUrl: string | null;
+      pharmacist: PharmacistType;
+      pharmacy: PharmacyWithDistance;
+      messages: ChatMessage[];
+    };

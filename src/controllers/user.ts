@@ -173,6 +173,9 @@ export async function getPharmacistData(req: Request, res: Response) {
   };
   const handoffs: PatientHandoffType[] = [];
   i = 0;
+  let waiting = 0;
+  let ongoing = 0;
+  let finished = 0;
   while (i < pharmacist.patientHandoffIds.length) {
     const handoff = await PatientHandoff.findById(
       pharmacist.patientHandoffIds[i++],
@@ -180,8 +183,51 @@ export async function getPharmacistData(req: Request, res: Response) {
     if (!handoff) {
       continue;
     }
+    switch (handoff.status) {
+      case "sent": {
+        waiting++;
+        break;
+      }
+      case "accepted": {
+        ongoing++;
+        break;
+      }
+      case "ready": {
+        ongoing++;
+        break;
+      }
+      case "completed": {
+        finished++;
+        break;
+      }
+      case "rejected": {
+        break;
+      }
+    }
     handoffs.push(handoff);
   }
-  const data: GetPharmacistData = { pharmacist, pharmacy, handoffs, user };
-  res.status(200).json(data)
+  const data: GetPharmacistData = {
+    pharmacist,
+    pharmacy,
+    handoffs,
+    user,
+    handOffStatusCount: { finished, ongoing, waiting },
+  };
+  res.status(200).json(data);
+}
+export async function updatePharmacistProfile(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const pharmacist = await getPharmacistFromUserId(user._id);
+
+  if (!pharmacist) {
+    sendRes(res, false);
+    return;
+  }
+  await pharmacist.updateOne(req.body);
+  const newData = await Pharmacist.findById(pharmacist._id);
+  res.status(200).json(newData);
 }

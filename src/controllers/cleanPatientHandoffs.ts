@@ -5,16 +5,24 @@ import TelemedicineRoom from "../models/TelemedicineRoom";
 import Pharmacist from "../models/Pharmacist";
 import { Request, Response } from "express";
 import { getUser } from "../middleware/auth";
-import { getPatientProfileFromUserId } from "./user";
+import { getPatientProfileFromUserId, getPharmacistFromUserId } from "./user";
 import {
+  ChatMessage,
+  ConsultationData,
   CreatePatientHandoff,
   FilteredHandoffsOptions,
   GetHandoffsOptions,
   HandoffStatusCount,
+  HandoffWithMessages,
   PatientHandoffStatus,
   PatientHandoffType,
+  PharmacistType,
+  PharmacyWithDistance,
+  PharmaShiftData,
 } from "../models/interface";
 import { sendRes, swop } from "./setup";
+import Pharmacy from "../models/Pharmacy";
+import TelemededicineMessage from "../models/TelemededicineMessage";
 
 interface PatientHandoffDoc {
   _id: Id;
@@ -319,4 +327,188 @@ export async function hasPendingHandoff(req: Request, res: Response) {
     }
   }
   sendRes(res, hasPending);
+}
+export async function getPatientHandoffsForConsultation(
+  req: Request,
+  res: Response,
+) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const patient = await getPatientProfileFromUserId(user._id);
+  if (!patient) {
+    sendRes(res, false);
+    return;
+  }
+  const consultationDatas: ConsultationData[] = [];
+  let i = 0;
+  while (i < patient.patientHandoffIds.length) {
+    const handoff = await PatientHandoff.findById(
+      patient.patientHandoffIds[i++],
+    );
+    if (!handoff) {
+      continue;
+    }
+    const pharmacist = await Pharmacist.findById(handoff.pharmacistId);
+    if (!pharmacist) {
+      continue;
+    }
+    let j = 0;
+    const pharmacistsWithPharmacy: PharmacistType[] = [];
+    const pharmacyRaw = await Pharmacy.findById(pharmacist.pharmacyId);
+    if (!pharmacyRaw) {
+      sendRes(res, false);
+      return;
+    }
+
+    while (j < pharmacyRaw.pharmacistIds.length) {
+      const pharmacist = await Pharmacist.findById(
+        pharmacyRaw.pharmacistIds[j++],
+      );
+      if (!pharmacist) {
+        continue;
+      }
+      pharmacistsWithPharmacy.push(pharmacist);
+    }
+    const pharmacy: PharmacyWithDistance = {
+      ...pharmacyRaw,
+      distance: 0,
+      isOpen: true,
+      onlinePharmacists: pharmacistsWithPharmacy.filter(
+        (r) => r.availability === "online",
+      ).length,
+      estimatedWaitTime: 0,
+      lat: 0,
+      lng: 0,
+    };
+    let k = 0;
+    const messages: ChatMessage[] = [];
+    while (k < handoff.chatIds.length) {
+      const message = await TelemededicineMessage.findById(
+        handoff.chatIds[k++],
+      );
+      if (!message) {
+        continue;
+      }
+      messages.push(message);
+    }
+    switch (handoff.telemedicineChannel) {
+      case "chat": {
+        consultationDatas.push({
+          messages,
+          pharmacist,
+          pharmacy,
+          isChat: true,
+          isPhone: false,
+          isVideo: false,
+          handoff,
+        });
+        continue;
+      }
+      case "phone": {
+        const telemedicineRoom = await TelemedicineRoom.findById(
+          handoff.telemedicineRoomId,
+        );
+        consultationDatas.push({
+          pharmacist,
+          pharmacy,
+          isChat: false,
+          isPhone: true,
+          isVideo: false,
+          roomUrl: telemedicineRoom?.roomUrl ?? null,
+          handoff,
+          messages,
+        });
+        continue;
+      }
+      case "video": {
+        const telemedicineRoom = await TelemedicineRoom.findById(
+          handoff.telemedicineRoomId,
+        );
+        consultationDatas.push({
+          pharmacist,
+          pharmacy,
+          isChat: false,
+          isPhone: false,
+          isVideo: true,
+          roomUrl: telemedicineRoom?.roomUrl ?? null,
+          handoff,
+          messages,
+        });
+        continue;
+      }
+    }
+  }
+  res.status(200).json(consultationDatas);
+}
+export async function getPharmacistShiftData(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const pharmacist = await getPharmacistFromUserId(user._id);
+  if (!pharmacist) {
+    sendRes(res, false);
+    return;
+  }
+  let i = 0;
+  const pharmacistsWithPharmacy: PharmacistType[] = [];
+  const pharmacyRaw = await Pharmacy.findById(pharmacist.pharmacyId);
+  if (!pharmacyRaw) {
+    sendRes(res, false);
+    return;
+  }
+
+  while (i < pharmacyRaw.pharmacistIds.length) {
+    const pharmacist = await Pharmacist.findById(
+      pharmacyRaw.pharmacistIds[i++],
+    );
+    if (!pharmacist) {
+      continue;
+    }
+    pharmacistsWithPharmacy.push(pharmacist);
+  }
+  const pharmacy: PharmacyWithDistance = {
+    ...pharmacyRaw,
+    distance: 0,
+    isOpen: true,
+    onlinePharmacists: pharmacistsWithPharmacy.filter(
+      (r) => r.availability === "online",
+    ).length,
+    estimatedWaitTime: 0,
+    lat: 0,
+    lng: 0,
+  };
+  const arrayHandoffWithMessages: HandoffWithMessages[] = [];
+  i = 0;
+  
+  while (i < pharmacist.patientHandoffIds.length) {
+    const handoff = await PatientHandoff.findById(
+      pharmacist.patientHandoffIds[i++],
+    );
+    if (!handoff) {
+      continue;
+    }
+    let j=0
+    const messages:ChatMessage[]=[]
+    while(j<handoff.chatIds.length){
+      const message=await TelemededicineMessage.findById(handoff.chatIds[j++])
+      if(!message){
+        continue
+      }
+      messages.push(message)
+    }
+    
+    arrayHandoffWithMessages.push({handoff,messages});
+
+  }
+  const data: PharmaShiftData = {
+    pharmacist,
+    pharmacy,
+    arrayHandoffWithMessages
+  };
+  res.status(200).json(data);
 }

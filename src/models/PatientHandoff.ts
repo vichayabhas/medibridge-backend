@@ -5,6 +5,7 @@ import {
   dataNumber,
   arrayString,
   dataDate,
+  arrayObjectId,
 } from "../controllers/setup";
 import {
   patientRequestTypes,
@@ -58,6 +59,8 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  telemedicineRoomId: mongoose.Schema.ObjectId,
+  chatIds: arrayObjectId,
 });
 
 export default mongoose.model("PatientHandoff", schema);

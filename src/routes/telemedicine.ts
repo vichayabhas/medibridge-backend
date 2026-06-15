@@ -11,6 +11,7 @@ import { Request, Response } from "express";
 import { Router } from "express";
 import { DailyCoClient } from "../services/daily-co";
 import TelemedicineRoom from "../models/TelemedicineRoom";
+import PatientHandoff from "../models/PatientHandoff";
 
 type TelemedicineRoomRecord = {
   taskId: string;
@@ -106,14 +107,13 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
       const telemedicineRoom = await TelemedicineRoom.findOne({ taskId });
       if (telemedicineRoom) {
         await telemedicineRoom.updateOne({
-          handoffId: taskId,
           roomId: room.roomId,
           roomUrl: room.roomUrl,
           pharmacistName,
           expiresAt,
           enableRecording,
         });
-      }else{
+      }else{const newRoom=
         await TelemedicineRoom.create({
           handoffId: taskId,
           roomId: room.roomId,
@@ -122,6 +122,7 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
           expiresAt,
           enableRecording,
         });
+        await PatientHandoff.findByIdAndUpdate({telemedicineRoomId:newRoom._id})
       }
 
       telemedicineRoomCache.set(taskId, roomRow);
