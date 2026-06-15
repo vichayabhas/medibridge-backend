@@ -7,7 +7,7 @@ import { Request } from "express";
 import { getUser } from "../middleware/auth";
 import { getPatientProfileFromUserId } from "./user";
 import { PatientHandoffStatus, PatientHandoffType } from "../models/interface";
-
+import { swop } from "./setup";
 
 // export type PatientRequestType =
 //   | "in_store"
@@ -15,8 +15,6 @@ import { PatientHandoffStatus, PatientHandoffType } from "../models/interface";
 //   | "telemedicine"
 //   | "delivery";
 // export type TelemedicineChannel = "chat" | "phone" | "video";
-
-
 
 export type CreatePatientHandoff = Omit<PatientHandoffType, "_id" | "createAt">;
 
@@ -297,7 +295,27 @@ export async function savePatientHandoff(
   // if (!userId) {
   //   return { success: false, error: "กรุณาเข้าสู่ระบบก่อนส่งคำขอ" };
   // }
-  await PatientHandoff.create({ ...handoff, userId: patientProfile._id });
+  const newHandoff = await PatientHandoff.create({
+    ...handoff,
+    userId: patientProfile._id,
+  });
+  await patientProfile.updateOne({
+    patientHandoffIds: swop(
+      null,
+      newHandoff._id,
+      patientProfile.patientHandoffIds,
+    ),
+  });
+  const pharmacist = await Pharmacist.findById(newHandoff.pharmacistId);
+  if (pharmacist) {
+    await pharmacist.updateOne({
+      patientHandoffIds: swop(
+        null,
+        newHandoff._id,
+        pharmacist.patientHandoffIds,
+      ),
+    });
+  }
 
   // const row = { ...toDbRow(handoff), user_id: userId };
   // const { error } = await supabase.from("patient_handoffs").insert(row);

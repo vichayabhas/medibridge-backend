@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getPatientCallData,
   // getHandoffStatusCounts,
   getPatientHandoffs,
   getPatientHandoffsForConsultation,
@@ -33,4 +34,5 @@ router.get(
   getPatientHandoffsForConsultation,
 );
 router.get("/getPharmacistShiftData/", getPharmacistShiftData);
+router.get("/getPatientCallData/:id", getPatientCallData);
 export default router;

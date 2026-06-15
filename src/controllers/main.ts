@@ -1,12 +1,16 @@
 import { Request, Response } from "express";
 import { getArticles } from "./article";
 import {
+  AdminData,
   HomePageData,
   PharmacistType,
   PharmacyWithDistance,
 } from "../models/interface";
 import Pharmacy from "../models/Pharmacy";
 import Pharmacist from "../models/Pharmacist";
+import { getUser } from "../middleware/auth";
+import { sendRes } from "./setup";
+import Article from "../models/Article";
 
 export async function getHomePageData(req: Request, res: Response) {
   const articleReadies = await getArticles();
@@ -83,4 +87,81 @@ export async function loadAllPharmacyAndPharmacist(
   //       });
   //     }
   //   },
+}
+export async function getAdminData(req: Request, res: Response) {
+  const pharmaciesRaw = await Pharmacy.find();
+  const pharmacists: PharmacistType[] = [];
+  const pharmacies: PharmacyWithDistance[] = [];
+  let i = 0;
+  while (i < pharmaciesRaw.length) {
+    const pharmacy = pharmaciesRaw[i++];
+    let j = 0;
+    const pharmacistsWithPharmacy: PharmacistType[] = [];
+    while (j < pharmacy.pharmacistIds.length) {
+      const pharmacist = await Pharmacist.findById(pharmacy.pharmacistIds[j++]);
+      if (!pharmacist) {
+        continue;
+      }
+      pharmacists.push(pharmacist);
+      pharmacistsWithPharmacy.push(pharmacist);
+    }
+    pharmacies.push({
+      ...pharmacy,
+      distance: 0,
+      isOpen: true,
+      onlinePharmacists: pharmacistsWithPharmacy.filter(
+        (r) => r.availability === "online",
+      ).length,
+      estimatedWaitTime: 0,
+      lat: 0,
+      lng: 0,
+    });
+  }
+  const articles = await getArticles();
+  const data: AdminData = {
+    pharmacists,
+    articles,
+    pharmacies,
+  };
+  res.status(200).json(data);
+}
+export async function articleAction(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  if (user.role != "admin") {
+    sendRes(res, false);
+    return;
+  }
+  await Article.findByIdAndUpdate(req.params.id, req.body);
+  const articles = await getArticles();
+  res.status(200).json(articles);
+}
+export async function pharmacistAction(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  if (user.role != "admin") {
+    sendRes(res, false);
+    return;
+  }
+  await Pharmacist.findByIdAndUpdate(req.params.id, req.body);
+  await loadAllPharmacyAndPharmacist(req, res);
+}
+export async function pharmacyAction(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  if (user.role != "admin") {
+    sendRes(res, false);
+    return;
+  }
+  await Pharmacy.findByIdAndUpdate(req.params.id, req.body);
+  await loadAllPharmacyAndPharmacist(req, res);
 }

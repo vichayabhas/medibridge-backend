@@ -172,12 +172,16 @@ export interface PharmacistType {
   insurance: string[];
   bio: string;
   nextAvailable: string;
+  verificationStatus: VerificationStatus;
 }
 export const socketEvents = [
   "new_message",
   "profile-sync",
   "handoff",
   "update-pharmacistProfile",
+  "update-article",
+  "update-pharmacist",
+  "update-pharmacy",
 ] as const;
 export type SocketEvent = (typeof socketEvents)[number];
 export interface ChatMessage {
@@ -327,3 +331,14 @@ export type ConsultationData =
       pharmacy: PharmacyWithDistance;
       messages: ChatMessage[];
     };
+export interface PatientCallData {
+  handoff: PatientHandoffType;
+  messageInputs: ChatMessage[];
+  pharmacyName: string;
+  error: string | null;
+}
+export interface AdminData {
+  pharmacists: PharmacistType[];
+  pharmacies: PharmacyWithDistance[];
+  articles: ArticleReady[];
+}

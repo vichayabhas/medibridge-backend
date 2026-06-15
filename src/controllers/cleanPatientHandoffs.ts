@@ -14,6 +14,7 @@ import {
   GetHandoffsOptions,
   HandoffStatusCount,
   HandoffWithMessages,
+  PatientCallData,
   PatientHandoffStatus,
   PatientHandoffType,
   PharmacistType,
@@ -484,7 +485,7 @@ export async function getPharmacistShiftData(req: Request, res: Response) {
   };
   const arrayHandoffWithMessages: HandoffWithMessages[] = [];
   i = 0;
-  
+
   while (i < pharmacist.patientHandoffIds.length) {
     const handoff = await PatientHandoff.findById(
       pharmacist.patientHandoffIds[i++],
@@ -492,23 +493,66 @@ export async function getPharmacistShiftData(req: Request, res: Response) {
     if (!handoff) {
       continue;
     }
-    let j=0
-    const messages:ChatMessage[]=[]
-    while(j<handoff.chatIds.length){
-      const message=await TelemededicineMessage.findById(handoff.chatIds[j++])
-      if(!message){
-        continue
+    let j = 0;
+    const messages: ChatMessage[] = [];
+    while (j < handoff.chatIds.length) {
+      const message = await TelemededicineMessage.findById(
+        handoff.chatIds[j++],
+      );
+      if (!message) {
+        continue;
       }
-      messages.push(message)
+      messages.push(message);
     }
-    
-    arrayHandoffWithMessages.push({handoff,messages});
 
+    arrayHandoffWithMessages.push({ handoff, messages });
   }
   const data: PharmaShiftData = {
     pharmacist,
     pharmacy,
-    arrayHandoffWithMessages
+    arrayHandoffWithMessages,
+  };
+  res.status(200).json(data);
+}
+export async function getPatientCallData(req: Request, res: Response) {
+  const handoff = await PatientHandoff.findById(req.params.id);
+  let error: string | null = null;
+  if (!handoff) {
+    error = "ไม่พบข้อมูลการปรึกษา";
+    res.status(400).json({ error });
+    return;
+  }
+
+  if (handoff.status !== "accepted") {
+    error = "การปรึกษายังไม่พร้อม กรุณารอเภสัชกรรับเรื่อง";
+    res.status(400).json({ error });
+    return;
+  }
+
+  const pharmacist = await Pharmacist.findById(handoff.pharmacistId);
+  if (!pharmacist) {
+    sendRes(res, false);
+    return;
+  }
+  const pharmacy = await Pharmacy.findById(pharmacist.pharmacyId);
+  if (!pharmacy) {
+    sendRes(res, false);
+    return;
+  }
+  const messageInputs: ChatMessage[] = [];
+  let i = 0;
+  while (i < handoff.chatIds.length) {
+    const message = await TelemededicineMessage.findById(handoff.chatIds[i++]);
+    if (!message) {
+      continue;
+    }
+    messageInputs.push(message);
+  }
+  const data: PatientCallData = {
+    messageInputs,
+    handoff,
+    pharmacyName: pharmacy.name,
+    error,
   };
   res.status(200).json(data);
 }
