@@ -78,6 +78,10 @@ app.use("/main", main);
 app.use("/patientHandoff", patientHandoff);
 app.use("/article", article);
 app.use("/order", order);
+app.get("/", (req, res) => {
+  res.send("<div>this backend is ready to connect to frontend</div>");
+});
+// app
 /**
  * Health check endpoint
  */
