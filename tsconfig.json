@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "NodeNext",
+    "outDir": "./public",
+    "rootDir": "./src",
+    "strict": true,
+    "allowSyntheticDefaultImports": true
+  }
+}
