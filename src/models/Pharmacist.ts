@@ -51,5 +51,6 @@ const schema = new mongoose.Schema({
   },
   articlesIds: arrayObjectId,
   patientHandoffIds: arrayObjectId,
+  orderIds: arrayObjectId,
 });
 export default mongoose.model("Pharmacist", schema);

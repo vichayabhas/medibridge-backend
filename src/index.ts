@@ -21,6 +21,7 @@ import { Server } from "socket.io";
 import { socketEvents } from "./models/interface";
 import { createServer } from "http";
 import article from "./routes/article";
+import order from "./routes/order";
 
 /**
  * Initialize Express app
@@ -75,6 +76,7 @@ app.use("/api/v1/auth", user);
 app.use("/main", main);
 app.use("/patientHandoff", patientHandoff);
 app.use("/article", article);
+app.use("/order", order);
 /**
  * Health check endpoint
  */

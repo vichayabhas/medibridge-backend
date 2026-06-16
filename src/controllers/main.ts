@@ -3,6 +3,7 @@ import { getArticles } from "./article";
 import {
   AdminData,
   HomePageData,
+  OrderType,
   PharmacistType,
   PharmacyWithDistance,
 } from "../models/interface";
@@ -11,16 +12,14 @@ import Pharmacist from "../models/Pharmacist";
 import { getUser } from "../middleware/auth";
 import { sendRes } from "./setup";
 import Article from "../models/Article";
+import Order from "../models/Order";
 
 export async function getHomePageData(req: Request, res: Response) {
   const articleReadies = await getArticles();
   const homePageData: HomePageData = { articleReadies };
   res.status(200).json(homePageData);
 }
-export async function loadAllPharmacyAndPharmacist(
-  req: Request,
-  res: Response,
-) {
+export async function loadAllPharmacyAndPharmacist() {
   // loadAll: async () => {
   //     set({ pharmacistsLoading: true, pharmacistsError: null });
   //     try {
@@ -77,7 +76,7 @@ export async function loadAllPharmacyAndPharmacist(
       lng: 0,
     });
   }
-  res.status(200).json({ pharmacies, pharmacists });
+  return { pharmacies, pharmacists };
   //       set({ pharmacies: withDistance, pharmacists, pharmacistsLoading: false });
   //     } catch (err) {
   //       console.error("[loadAll] unexpected error:", err);
@@ -149,8 +148,12 @@ export async function pharmacistAction(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  await Pharmacist.findByIdAndUpdate(req.params.id, req.body);
-  await loadAllPharmacyAndPharmacist(req, res);
+  const pharmacist = await Pharmacist.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+  );
+  const { pharmacies, pharmacists } = await loadAllPharmacyAndPharmacist();
+  res.status(200).json({ pharmacies, pharmacists, pharmacist });
 }
 export async function pharmacyAction(req: Request, res: Response) {
   const user = await getUser(req);
@@ -162,6 +165,68 @@ export async function pharmacyAction(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  await Pharmacy.findByIdAndUpdate(req.params.id, req.body);
-  await loadAllPharmacyAndPharmacist(req, res);
+  const pharmacyRaw = await Pharmacy.findByIdAndUpdate(req.params.id, req.body);
+  if (!pharmacyRaw) {
+    sendRes(res, false);
+    return;
+  }
+  let i = 0;
+  const pharmacistsWithPharmacy: PharmacistType[] = [];
+  while (i < pharmacyRaw.pharmacistIds.length) {
+    const pharmacist = await Pharmacist.findById(
+      pharmacyRaw.pharmacistIds[i++],
+    );
+    if (!pharmacist) {
+      continue;
+    }
+    pharmacistsWithPharmacy.push(pharmacist);
+  }
+  const pharmacy: PharmacyWithDistance = {
+    ...pharmacyRaw,
+    distance: 0,
+    isOpen: true,
+    onlinePharmacists: pharmacistsWithPharmacy.filter(
+      (r) => r.availability === "online",
+    ).length,
+    estimatedWaitTime: 0,
+    lat: 0,
+    lng: 0,
+  };
+  const { pharmacies, pharmacists } = await loadAllPharmacyAndPharmacist();
+  res.status(200).json({ pharmacies, pharmacists, pharmacy });
+}
+export async function getPharmacyDashboardData(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const orders: OrderType[] = [];
+  const pharmacy = await Pharmacy.findById(user.roleId);
+  if (!pharmacy) {
+    res.status(200).json({ orders, pharmacy });
+    return;
+  }
+
+  // const pharmacists: PharmacistType[] = [];
+  let i = 0;
+  while (i < pharmacy.pharmacistIds.length) {
+    const pharmacist = await Pharmacist.findById(pharmacy.pharmacistIds[i++]);
+    if (!pharmacist) {
+      continue;
+    }
+    // pharmacists.push(pharmacist);
+    let j = 0;
+    while (i < pharmacist.orderIds.length) {
+      const order = await Order.findById(pharmacist.orderIds[j++]);
+      if (!order) {
+        continue;
+      }
+      if (order.fulfillment == "delivery") {
+        continue;
+      }
+      orders.push(order);
+    }
+  }
+  res.status(200).json({ orders, pharmacy });
 }

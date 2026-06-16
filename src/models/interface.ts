@@ -182,6 +182,8 @@ export const socketEvents = [
   "update-article",
   "update-pharmacist",
   "update-pharmacy",
+  "update-single-pharmacy",
+  "update-order",
 ] as const;
 export type SocketEvent = (typeof socketEvents)[number];
 export interface ChatMessage {
@@ -341,4 +343,32 @@ export interface AdminData {
   pharmacists: PharmacistType[];
   pharmacies: PharmacyWithDistance[];
   articles: ArticleReady[];
+}
+export interface OrderType {
+  consultationId: Id;
+  userId: Id;
+  pharmacyId: Id;
+  pharmacistId: Id;
+  fulfillment: FulfillmentType;
+  status: OrderStatus;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  otpCode: string;
+  estimatedTime: string;
+  createAt: Date;
+  updateAt: Date;
+  _id: Id;
+}
+export interface PharmacyDashboardData {
+  pharmacy: PharmacyType | null;
+  orders: OrderType[];
+}
+export interface PharmacyRegister {
+  name: string;
+  address: string;
+  phone: string;
+  lat: number;
+  lng: number;
+  imageUrl: string;
 }

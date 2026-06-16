@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { userRoles } from "./interface";
 import { dataString } from "../controllers/setup";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
 
 const schema = new mongoose.Schema({
   name: dataString,
@@ -35,6 +35,7 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  roleId: mongoose.Schema.ObjectId,
 });
 schema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);

@@ -3,6 +3,7 @@ import {
   GetPharmacistData,
   PatientHandoffType,
   PharmacistType,
+  PharmacyRegister,
   PharmacyWithDistance,
   RegisterInput,
   UpdateProfile,
@@ -113,12 +114,14 @@ export async function checkPassword(
   sendRes(res, isMatch);
 }
 export async function getPatientProfileFromUserId(id: Id) {
-  console.log(id);
-  return await PatientProfile.findOne();
+  const user = await Profile.findById(id);
+  if (!user) return null;
+  return await PatientProfile.findById(user.roleId);
 }
 export async function getPharmacistFromUserId(id: Id) {
-  console.log(id);
-  return await Pharmacist.findOne();
+  const user = await Profile.findById(id);
+  if (!user) return null;
+  return await Pharmacist.findById(user.roleId);
 }
 export async function updateProfile(req: Request, res: Response) {
   const data: UpdateProfile = req.body;
@@ -230,4 +233,32 @@ export async function updatePharmacistProfile(req: Request, res: Response) {
   await pharmacist.updateOne(req.body);
   const newData = await Pharmacist.findById(pharmacist._id);
   res.status(200).json(newData);
+}
+export async function pharmacyRegister(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const { lat, lng, phone, name, address, imageUrl }: PharmacyRegister =
+    req.body;
+  const pharmacyRaw = await Pharmacy.create({
+    latitude: lat,
+    longitude: lng,
+    phone,
+    name,
+    imageUrl,
+    address,
+    managerId: user._id,
+  });
+  const pharmacy:PharmacyWithDistance={
+    ...pharmacyRaw,
+    distance: 0,
+    isOpen: false,
+    onlinePharmacists: 0,
+    estimatedWaitTime: 0,
+    lat: 0,
+    lng: 0
+  }
+  res.status(200).json(pharmacy)
 }
