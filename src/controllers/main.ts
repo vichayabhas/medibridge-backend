@@ -6,7 +6,7 @@ import {
   OrderType,
   PharmacistType,
   PharmacyWithDistance,
-} from "../models/interface";
+} from "../moduleSupport/interface";
 import Pharmacy from "../models/Pharmacy";
 import Pharmacist from "../models/Pharmacist";
 import { getUser } from "../middleware/auth";

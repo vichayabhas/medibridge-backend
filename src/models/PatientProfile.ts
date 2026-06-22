@@ -7,8 +7,8 @@ import {
   arrayObjectId,
   dataId,
 } from "../controllers/setup";
-import { genders } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { genders } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   firstName: dataString,
@@ -38,4 +38,5 @@ const schema = new mongoose.Schema({
   },
   userId: dataId,
 });
-export default new UnifiedModel(mongoose.model("PatientProfile", schema));
+export const model = mongoose.model("PatientProfile", schema);
+export default new UnifiedModel(model);

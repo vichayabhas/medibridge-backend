@@ -5,7 +5,7 @@ import {
   dataStringDefault,
   reqNumber,
 } from "../controllers/setup";
-import { UnifiedModel } from "./ModelFactory";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   orderId: dataId,
@@ -15,5 +15,5 @@ const schema = new mongoose.Schema({
   price: reqNumber,
   instructions: dataStringDefault,
 });
-
-export default new UnifiedModel(mongoose.model("OrderItem", schema));
+export const model = mongoose.model("OrderItem", schema);
+export default new UnifiedModel(model);

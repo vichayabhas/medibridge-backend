@@ -11,7 +11,7 @@ import {
   PharmacyWithDistance,
   RegisterInput,
   UpdateProfile,
-} from "../models/interface";
+} from "../moduleSupport/interface";
 import Profile from "../models/Profile";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

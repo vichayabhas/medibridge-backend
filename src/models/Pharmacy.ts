@@ -8,8 +8,8 @@ import {
   dataId,
   arrayObjectId,
 } from "../controllers/setup";
-import { verificationStatuses } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { verificationStatuses } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   name: dataString,
@@ -48,4 +48,5 @@ const schema = new mongoose.Schema({
   },
   pharmacistIds: arrayObjectId,
 });
-export default new UnifiedModel(mongoose.model("Pharmacy", schema));
+export const model = mongoose.model("Pharmacy", schema);
+export default new UnifiedModel(model);

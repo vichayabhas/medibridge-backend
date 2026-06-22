@@ -2,7 +2,7 @@
 
 import { Request, Response } from "express";
 import Article from "../models/Article";
-import { ArticleReady, CreateArticle } from "../models/interface";
+import { ArticleReady, CreateArticle } from "../moduleSupport/interface";
 import Pharmacist from "../models/Pharmacist";
 import { sendRes, swop } from "./setup";
 import { getUser } from "../middleware/auth";

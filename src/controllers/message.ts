@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { CreateTextMessage } from "../models/interface";
+import { CreateTextMessage } from "../moduleSupport/interface";
 import TelemededicineMessage from "../models/TelemededicineMessage";
 
 export async function createTextMessage(req:Request,res:Response){

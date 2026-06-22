@@ -6,8 +6,8 @@ import {
   arrayString,
   dataNumber,
 } from "../controllers/setup";
-import { articleStatuses } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { articleStatuses } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   title: dataString,
@@ -33,5 +33,5 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-export default new UnifiedModel(mongoose.model("Article", schema));
+export const model = mongoose.model("Article", schema);
+export default new UnifiedModel(model);

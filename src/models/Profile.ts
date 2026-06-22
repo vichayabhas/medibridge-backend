@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { userRoles } from "./interface";
+import { userRoles } from "../moduleSupport/interface";
 import { dataString } from "../controllers/setup";
 import bcrypt from "bcrypt";
-import { UnifiedModel } from "./ModelFactory";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   name: dataString,
@@ -42,4 +42,5 @@ schema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
-export default new UnifiedModel(mongoose.model("Profile", schema));
+export const model = mongoose.model("Profile", schema);
+export default new UnifiedModel(model);

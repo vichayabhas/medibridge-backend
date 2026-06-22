@@ -7,8 +7,11 @@ import {
   arrayObjectId,
   dataId,
 } from "../controllers/setup";
-import { pharmacistAvailabilities, verificationStatuses } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import {
+  pharmacistAvailabilities,
+  verificationStatuses,
+} from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   pharmacyId: dataId,
@@ -55,4 +58,5 @@ const schema = new mongoose.Schema({
   patientHandoffIds: arrayObjectId,
   orderIds: arrayObjectId,
 });
-export default new UnifiedModel(mongoose.model("Pharmacist", schema));
+export const model = mongoose.model("Pharmacist", schema);
+export default new UnifiedModel(model);

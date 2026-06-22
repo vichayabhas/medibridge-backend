@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { dataId, dataString, reqNumber } from "../controllers/setup";
-import { reviewTargetTypes } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { reviewTargetTypes } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   userId: dataId,
@@ -20,5 +20,5 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-export default new UnifiedModel(mongoose.model("Review", schema));
+export const model = mongoose.model("Review", schema);
+export default new UnifiedModel(model);

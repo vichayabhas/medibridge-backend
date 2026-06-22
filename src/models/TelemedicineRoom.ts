@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
-import {
-  dataId,
-  dataString,
-  getDefaultBoolean,
-} from "../controllers/setup";
-import { consultationStatuses } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { dataId, dataString, getDefaultBoolean } from "../controllers/setup";
+import { consultationStatuses } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   taskId: dataId,
@@ -33,5 +29,5 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-export default new UnifiedModel(mongoose.model("TelemedicineRoom", schema));
+export const model = mongoose.model("TelemedicineRoom", schema);
+export default new UnifiedModel(model);

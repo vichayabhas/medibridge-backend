@@ -1,6 +1,6 @@
 import mongoose, { QueryFilter } from "mongoose";
 import PatientHandoff from "../models/PatientHandoff";
-import { Id } from "../models/configTypes";
+import { Id } from "../moduleSupport/configTypes";
 import TelemedicineRoom from "../models/TelemedicineRoom";
 import Pharmacist from "../models/Pharmacist";
 import { Request, Response } from "express";
@@ -20,7 +20,7 @@ import {
   PharmacistType,
   PharmacyWithDistance,
   PharmaShiftData,
-} from "../models/interface";
+} from "../moduleSupport/interface";
 import { sendRes, swop } from "./setup";
 import Pharmacy from "../models/Pharmacy";
 import TelemededicineMessage from "../models/TelemededicineMessage";

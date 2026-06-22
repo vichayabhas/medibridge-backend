@@ -18,7 +18,7 @@ import user from "./routes/user";
 import main from "./routes/main";
 import patientHandoff from "./routes/patientHandoff";
 import { Server } from "socket.io";
-import { socketEvents } from "./models/interface";
+import { socketEvents } from "./moduleSupport/interface";
 import { createServer } from "http";
 import article from "./routes/article";
 import order from "./routes/order";

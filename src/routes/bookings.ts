@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from "express";
 import Pharmacist from "../models/Pharmacist";
 import PatientHandoff from "../models/PatientHandoff";
-import { Id } from "../models/configTypes";
-import { PatientRequestType, TelemedicineChannel } from "../models/interface";
+import { Id } from "../moduleSupport/configTypes";
+import { PatientRequestType, TelemedicineChannel } from "../moduleSupport/interface";
 
 
 

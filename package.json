@@ -17,7 +17,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.ts",
-    "build": "tsc",
+    "build": "npx tsx mongoToSupabase.js && tsc",
+    "update": "npx tsx mongoToSupabase.js",
     "start": "node public/index.js"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "dayjs": "^1.11.21",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.3",
     "nodemailer": "^8.0.9",

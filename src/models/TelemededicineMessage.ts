@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { dataId, dataString } from "../controllers/setup";
-import { senderTypes } from "./interface";
-import { UnifiedModel } from "./ModelFactory";
+import { senderTypes } from "../moduleSupport/interface";
+import { UnifiedModel } from "../moduleSupport/ModelFactory";
 
 const schema = new mongoose.Schema({
   handoffId: dataId,
@@ -21,5 +21,5 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-export default new UnifiedModel(mongoose.model("TelemedicineMessage", schema));
+export const model = mongoose.model("TelemedicineMessage", schema);
+export default new UnifiedModel(model);

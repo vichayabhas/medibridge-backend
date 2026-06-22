@@ -1,12 +1,12 @@
 import { QueryFilter } from "mongoose";
 import PatientHandoff from "../models/PatientHandoff";
-import { Id } from "../models/configTypes";
+import { Id } from "../moduleSupport/configTypes";
 import TelemedicineRoom from "../models/TelemedicineRoom";
 import Pharmacist from "../models/Pharmacist";
 import { Request } from "express";
 import { getUser } from "../middleware/auth";
 import { getPatientProfileFromUserId } from "./user";
-import { PatientHandoffStatus, PatientHandoffType } from "../models/interface";
+import { PatientHandoffStatus, PatientHandoffType } from "../moduleSupport/interface";
 import { swop } from "./setup";
 
 // export type PatientRequestType =

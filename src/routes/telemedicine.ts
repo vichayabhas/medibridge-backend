@@ -12,7 +12,7 @@ import { Router } from "express";
 import { DailyCoClient } from "../services/daily-co";
 import TelemedicineRoom from "../models/TelemedicineRoom";
 import PatientHandoff from "../models/PatientHandoff";
-import { Id } from "../models/configTypes";
+import { Id } from "../moduleSupport/configTypes";
 
 type TelemedicineRoomRecord = {
   taskId: Id;

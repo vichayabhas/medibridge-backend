@@ -5,6 +5,7 @@
     "outDir": "./public",
     "rootDir": "./src",
     "strict": true,
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   }
 }

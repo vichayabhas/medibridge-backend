@@ -3,7 +3,7 @@ import Order from "../models/Order";
 import { sendRes } from "./setup";
 import Pharmacist from "../models/Pharmacist";
 import Pharmacy from "../models/Pharmacy";
-import { OrderType } from "../models/interface";
+import { OrderType } from "../moduleSupport/interface";
 
 export async function updateOrderStatus(req: Request, res: Response) {
   const newOrder = await Order.findByIdAndUpdate(req.params.id.toString(), req.body);
