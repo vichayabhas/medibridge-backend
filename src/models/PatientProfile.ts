@@ -5,8 +5,10 @@ import {
   arrayString,
   getDefaultBoolean,
   arrayObjectId,
+  dataId,
 } from "../controllers/setup";
 import { genders } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   firstName: dataString,
@@ -34,5 +36,6 @@ const schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  userId: dataId,
 });
-export default mongoose.model("PatientProfile", schema);
+export default new UnifiedModel(mongoose.model("PatientProfile", schema));

@@ -12,15 +12,16 @@ import { Router } from "express";
 import { DailyCoClient } from "../services/daily-co";
 import TelemedicineRoom from "../models/TelemedicineRoom";
 import PatientHandoff from "../models/PatientHandoff";
+import { Id } from "../models/configTypes";
 
 type TelemedicineRoomRecord = {
-  taskId: string;
-  handoffId: string;
-  roomId: string;
+  taskId: Id;
+  handoffId: Id;
+  roomIdentifier: string;
   roomName: string;
   roomUrl: string;
   pharmacistName: string;
-  expiresAt: string | null;
+  expiresAt: Date | null;
   enableRecording: boolean;
 };
 
@@ -91,13 +92,13 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
       });
 
       const expiresAt = room.expiresAt
-        ? new Date(room.expiresAt).toISOString()
+        ? new Date(room.expiresAt)
         : null;
 
       const roomRow: TelemedicineRoomRecord = {
         taskId,
         handoffId: taskId,
-        roomId: room.roomId,
+        roomIdentifier: room.roomId,
         roomName: room.roomName,
         roomUrl: room.roomUrl,
         pharmacistName: pharmacistName,
@@ -107,7 +108,7 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
       const telemedicineRoom = await TelemedicineRoom.findOne({ taskId });
       if (telemedicineRoom) {
         await telemedicineRoom.updateOne({
-          roomId: room.roomId,
+          roomIdentifier: room.roomId,
           roomUrl: room.roomUrl,
           pharmacistName,
           expiresAt,
@@ -116,13 +117,13 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
       }else{const newRoom=
         await TelemedicineRoom.create({
           handoffId: taskId,
-          roomId: room.roomId,
+          roomIdentifier: room.roomId,
           roomUrl: room.roomUrl,
           pharmacistName,
           expiresAt,
           enableRecording,
         });
-        await PatientHandoff.findByIdAndUpdate({telemedicineRoomId:newRoom._id})
+        await PatientHandoff.findByIdAndUpdate(taskId,{telemedicineRoomId:newRoom._id})
       }
 
       telemedicineRoomCache.set(taskId, roomRow);
@@ -293,7 +294,7 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
         const cached = telemedicineRoomCache.get(handoffId);
         res.json({
           success: true,
-          roomUrl: data?.roomId ?? cached?.roomUrl ?? null,
+          roomUrl: data?.roomIdentifier ?? cached?.roomUrl ?? null,
         });
         return;
       } catch (error) {
@@ -354,7 +355,7 @@ export function createTeleMedicineRouter(dailyClient: DailyCoClient): Router {
       const source = room ?? cached;
       const roomName =
         (source as Partial<TelemedicineRoomRecord> | undefined)?.roomName ||
-        deriveDailyRoomName(source?.roomId?.toString());
+        deriveDailyRoomName(source?.roomIdentifier?.toString());
 
       if (!roomName) {
         res

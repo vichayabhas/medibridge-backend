@@ -6,7 +6,7 @@ import Pharmacy from "../models/Pharmacy";
 import { OrderType } from "../models/interface";
 
 export async function updateOrderStatus(req: Request, res: Response) {
-  const newOrder = await Order.findByIdAndUpdate(req.params.id, req.body);
+  const newOrder = await Order.findByIdAndUpdate(req.params.id.toString(), req.body);
   if (!newOrder) {
     sendRes(res, false);
     return;

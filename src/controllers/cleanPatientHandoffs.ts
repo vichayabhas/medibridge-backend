@@ -1,4 +1,4 @@
-import { QueryFilter } from "mongoose";
+import mongoose, { QueryFilter } from "mongoose";
 import PatientHandoff from "../models/PatientHandoff";
 import { Id } from "../models/configTypes";
 import TelemedicineRoom from "../models/TelemedicineRoom";
@@ -410,7 +410,7 @@ export async function getPatientHandoffsForConsultation(
       }
       case "phone": {
         const telemedicineRoom = await TelemedicineRoom.findById(
-          handoff.telemedicineRoomId,
+          new mongoose.Types.ObjectId(handoff.telemedicineRoomId?.toString()),
         );
         consultationDatas.push({
           pharmacist,
@@ -426,7 +426,7 @@ export async function getPatientHandoffsForConsultation(
       }
       case "video": {
         const telemedicineRoom = await TelemedicineRoom.findById(
-          handoff.telemedicineRoomId,
+          new mongoose.Types.ObjectId(handoff.telemedicineRoomId?.toString()),
         );
         consultationDatas.push({
           pharmacist,
@@ -515,7 +515,7 @@ export async function getPharmacistShiftData(req: Request, res: Response) {
   res.status(200).json(data);
 }
 export async function getPatientCallData(req: Request, res: Response) {
-  const handoff = await PatientHandoff.findById(req.params.id);
+  const handoff = await PatientHandoff.findById(req.params.id.toString());
   let error: string | null = null;
   if (!handoff) {
     error = "ไม่พบข้อมูลการปรึกษา";

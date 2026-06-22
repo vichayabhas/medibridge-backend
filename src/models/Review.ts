@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { dataId, dataString, reqNumber } from "../controllers/setup";
 import { reviewTargetTypes } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   userId: dataId,
@@ -20,4 +21,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("Review", schema);
+export default new UnifiedModel(mongoose.model("Review", schema));

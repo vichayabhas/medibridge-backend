@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { dataId, getDefaultBoolean } from "../controllers/setup";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   userId: dataId,
@@ -19,4 +20,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("PatientClipboard", schema);
+export default new UnifiedModel(mongoose.model("PatientClipboard", schema));

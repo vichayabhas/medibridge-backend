@@ -7,6 +7,7 @@ import {
   dataNumber,
   arrayString,
 } from "../controllers/setup";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   pharmacyId: dataId,
@@ -32,4 +33,4 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-export default mongoose.model("Product", schema);
+export default new UnifiedModel(mongoose.model("Product", schema));

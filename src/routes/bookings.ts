@@ -72,7 +72,7 @@ function splitSymptoms(value: string): string[] {
 //   return out;
 // }
 
-async function validateBooking(pharmacistId: string, slot: string, duration: number, dayOffset: number) {
+async function validateBooking(pharmacistId: Id, slot: string, duration: number, dayOffset: number) {
   if (dayOffset === 0) {
     const now = new Date();
     const nowMins = now.getHours() * 60 + now.getMinutes();
@@ -108,7 +108,7 @@ async function validateBooking(pharmacistId: string, slot: string, duration: num
 }
 router.post("/validate", async (req: Request, res: Response) => {
   const { pharmacistId, slot, duration, dayOffset } = req.body as {
-    pharmacistId: string;
+    pharmacistId: Id;
     slot: string;
     duration: number;
     dayOffset: number;
@@ -141,12 +141,12 @@ router.post("/create", async (req: Request, res: Response) => {
     telemedicineCollectedData,
     note,
   } = req.body as {
-    pharmacistId: string;
+    pharmacistId: Id;
     pharmacyId?: Id;
     slot: string;
     duration: number;
     dayOffset: number;
-    appointmentTime: string;
+    appointmentTime: Date;
     userId: Id
     patientName?: string;
     requestType?: PatientRequestType;

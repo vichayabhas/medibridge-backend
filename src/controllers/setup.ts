@@ -148,7 +148,7 @@ export const dataMapObjectId = {
   of: mongoose.Schema.ObjectId,
 } as const;
 export const dataId = {
-  type: mongoose.Schema.ObjectId,
+  type: mongoose.Schema.Types.ObjectId,
   required: true,
 } as const;
 export const dataDate = {

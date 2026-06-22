@@ -31,14 +31,14 @@ const app = express();
 /**
  * Middleware
  */
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000",
-  ...(process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(",").map((u) => u.trim())
-    : []),
-];
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "http://localhost:5174",
+//   "http://localhost:3000",
+//   ...(process.env.FRONTEND_URL
+//     ? process.env.FRONTEND_URL.split(",").map((u) => u.trim())
+//     : []),
+// ];
 
 app.use(
   cors({
@@ -111,7 +111,7 @@ app.get("/api/health", (req, res) => {
 const httpServer = createServer(app);
 
 export const io = new Server(httpServer, {
-  cors: { origin: allowedOrigins },
+  cors: { origin: '*' },
 });
 io.on("connection", (socket) => {
   socketEvents.map((v) => {

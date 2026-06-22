@@ -5,11 +5,12 @@ import {
   getDefaultBoolean,
 } from "../controllers/setup";
 import { consultationStatuses } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   taskId: dataId,
   handoffId: dataId,
-  roomId: dataId,
+  roomIdentifier: dataString,
   roomUrl: dataString,
   pharmacistName: dataString,
   expiresAt: Date,
@@ -33,4 +34,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("TelemedicineRoom", schema);
+export default new UnifiedModel(mongoose.model("TelemedicineRoom", schema));

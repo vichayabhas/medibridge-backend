@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { dataId } from "../controllers/setup";
 import { consultationStatuses } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   triageSessionId: dataId,
@@ -26,4 +27,4 @@ const schema = new mongoose.Schema({
     default: Date.now,
   },
 });
-export default mongoose.model("Consultation", schema);
+export default new UnifiedModel(mongoose.model("Consultation", schema));

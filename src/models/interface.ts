@@ -54,6 +54,7 @@ export const notificationTypes = [
   "order_status",
   "follow_up",
 ] as const;
+export const bloodTypes = ["A+", "B+", "A-", "B-", "O", "AB"];
 export const genders = ["male", "female", "other"] as const;
 export const senderTypes = ["patient", "pharmacist", "system"] as const;
 export const articleStatuses = ["pending", "approved", "rejected"] as const;
@@ -72,6 +73,7 @@ export type NotificationType = (typeof notificationTypes)[number];
 export type Gender = (typeof genders)[number];
 export type SenderType = (typeof senderTypes)[number];
 export type ArticleStatus = (typeof articleStatuses)[number];
+export type BloodType = (typeof bloodTypes)[number];
 export type AuthRoleSeed = {
   value: UserRole;
   label: string;
@@ -154,7 +156,7 @@ export type PatientHandoffType = {
 };
 export interface PharmacistType {
   _id: Id;
-  pharmacyId: string;
+  pharmacyId: Id;
   name: string;
   licenseNo: string;
   // avatar: string;
@@ -371,4 +373,41 @@ export interface PharmacyRegister {
   lat: number;
   lng: number;
   imageUrl: string;
+}
+export interface PatientProfileType {
+  _id: Id;
+  firstName: string;
+  lastName: string;
+  gender: Gender;
+  age: number;
+  weight: number;
+  allergies: string[];
+  conditions: string[];
+  currentMedications: string[];
+  isPregnant: boolean;
+  isBreastfeeding: boolean;
+  bloodType: BloodType;
+  symptoms: string;
+  patientHandoffIds: Id[];
+  createAt: Date;
+  updateAt: Date;
+}
+export interface CreateOrUpdatePatientProfile {
+  firstName: string;
+  lastName: string;
+  gender: Gender;
+  age: number;
+  weight: number;
+  allergies: string[];
+  conditions: string[];
+  currentMedications: string[];
+  isPregnant: boolean;
+  isBreastfeeding: boolean;
+  bloodType: BloodType;
+  symptoms: string;
+}
+export interface GetPatientProfileData {
+  consultationDatas: ConsultationData[];
+  user: AuthUser;
+  patient: PatientProfileType | null;
 }

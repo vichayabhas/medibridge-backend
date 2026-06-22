@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { dataString, getDefaultBoolean } from "../controllers/setup";
 import { notificationTypes } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   userId: dataString,
@@ -19,4 +20,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("Notification", schema);
+export default new UnifiedModel(mongoose.model("Notification", schema));

@@ -1,5 +1,9 @@
 import express, { Request, Response } from "express";
 import {
+  ChatMessage,
+  ConsultationData,
+  CreateOrUpdatePatientProfile,
+  GetPatientProfileData,
   GetPharmacistData,
   PatientHandoffType,
   PharmacistType,
@@ -18,6 +22,8 @@ import PatientProfile from "../models/PatientProfile";
 import Pharmacist from "../models/Pharmacist";
 import Pharmacy from "../models/Pharmacy";
 import PatientHandoff from "../models/PatientHandoff";
+import TelemededicineMessage from "../models/TelemededicineMessage";
+import TelemedicineRoom from "../models/TelemedicineRoom";
 type Id = mongoose.Types.ObjectId;
 export async function register(req: express.Request, res: express.Response) {
   try {
@@ -130,7 +136,7 @@ export async function updateProfile(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  await user.updateOne(data);
+  await Profile.findByIdAndUpdate(user._id,data)
   // const user2 = await Profile.findById(user._id);
   // res.status(200).json({});
   sendTokenResponse(user._id, 200, res);
@@ -251,14 +257,149 @@ export async function pharmacyRegister(req: Request, res: Response) {
     address,
     managerId: user._id,
   });
-  const pharmacy:PharmacyWithDistance={
+  const pharmacy: PharmacyWithDistance = {
     ...pharmacyRaw,
     distance: 0,
     isOpen: false,
     onlinePharmacists: 0,
     estimatedWaitTime: 0,
     lat: 0,
-    lng: 0
+    lng: 0,
+  };
+  res.status(200).json(pharmacy);
+}
+export async function createOrUpdatePatientProfile(
+  req: Request,
+  res: Response,
+) {
+  const body: CreateOrUpdatePatientProfile = req.body;
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
   }
-  res.status(200).json(pharmacy)
+  let patient = await PatientProfile.findById(user.roleId);
+  if (!patient) {
+    patient = await PatientProfile.create({ ...body, userId: user._id });
+    // await user.updateOne({ roleId: patient._id });
+    await Profile.findByIdAndUpdate(user._id,{roleId:patient._id})
+  } else {
+    await patient.updateOne(body);
+  }
+  res.status(200).json({ ...body, ...patient });
+}
+export async function getPatientProfileData(req: Request, res: Response) {
+  const user = await getUser(req);
+  if (!user) {
+    sendRes(res, false);
+    return;
+  }
+  const consultationDatas: ConsultationData[] = [];
+  const patient = await getPatientProfileFromUserId(user._id);
+  if (!patient) {
+    const data: GetPatientProfileData = { patient, user, consultationDatas };
+    res.status(200).json(data);
+    return;
+  }
+
+  let i = 0;
+  while (i < patient.patientHandoffIds.length) {
+    const handoff = await PatientHandoff.findById(
+      patient.patientHandoffIds[i++],
+    );
+    if (!handoff) {
+      continue;
+    }
+    const pharmacist = await Pharmacist.findById(handoff.pharmacistId);
+    if (!pharmacist) {
+      continue;
+    }
+    let j = 0;
+    const pharmacistsWithPharmacy: PharmacistType[] = [];
+    const pharmacyRaw = await Pharmacy.findById(pharmacist.pharmacyId);
+    if (!pharmacyRaw) {
+      sendRes(res, false);
+      return;
+    }
+
+    while (j < pharmacyRaw.pharmacistIds.length) {
+      const pharmacist = await Pharmacist.findById(
+        pharmacyRaw.pharmacistIds[j++],
+      );
+      if (!pharmacist) {
+        continue;
+      }
+      pharmacistsWithPharmacy.push(pharmacist);
+    }
+    const pharmacy: PharmacyWithDistance = {
+      ...pharmacyRaw,
+      distance: 0,
+      isOpen: true,
+      onlinePharmacists: pharmacistsWithPharmacy.filter(
+        (r) => r.availability === "online",
+      ).length,
+      estimatedWaitTime: 0,
+      lat: 0,
+      lng: 0,
+    };
+    let k = 0;
+    const messages: ChatMessage[] = [];
+    while (k < handoff.chatIds.length) {
+      const message = await TelemededicineMessage.findById(
+        handoff.chatIds[k++],
+      );
+      if (!message) {
+        continue;
+      }
+      messages.push(message);
+    }
+    switch (handoff.telemedicineChannel) {
+      case "chat": {
+        consultationDatas.push({
+          messages,
+          pharmacist,
+          pharmacy,
+          isChat: true,
+          isPhone: false,
+          isVideo: false,
+          handoff,
+        });
+        continue;
+      }
+      case "phone": {
+        const telemedicineRoom = await TelemedicineRoom.findById(
+          handoff.telemedicineRoomId,
+        );
+        consultationDatas.push({
+          pharmacist,
+          pharmacy,
+          isChat: false,
+          isPhone: true,
+          isVideo: false,
+          roomUrl: telemedicineRoom?.roomUrl ?? null,
+          handoff,
+          messages,
+        });
+        continue;
+      }
+      case "video": {
+        const telemedicineRoom = await TelemedicineRoom.findById(
+          handoff.telemedicineRoomId,
+        );
+        consultationDatas.push({
+          pharmacist,
+          pharmacy,
+          isChat: false,
+          isPhone: false,
+          isVideo: true,
+          roomUrl: telemedicineRoom?.roomUrl ?? null,
+          handoff,
+          messages,
+        });
+        continue;
+      }
+    }
+  }
+  const data: GetPatientProfileData = { patient, user, consultationDatas };
+  res.status(200).json(data);
 }

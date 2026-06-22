@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { dataId, dataString } from "../controllers/setup";
 import { senderTypes } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   handoffId: dataId,
@@ -21,4 +22,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("TelemedicineMessage", schema);
+export default new UnifiedModel(mongoose.model("TelemedicineMessage", schema));

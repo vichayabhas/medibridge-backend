@@ -5,11 +5,13 @@ import {
   arrayString,
   dataStringDefault,
   arrayObjectId,
+  dataId,
 } from "../controllers/setup";
 import { pharmacistAvailabilities, verificationStatuses } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
-  pharmacyId: dataString,
+  pharmacyId: dataId,
   name: dataString,
   licenseNo: dataString,
   avatarUrl: dataString,
@@ -53,4 +55,4 @@ const schema = new mongoose.Schema({
   patientHandoffIds: arrayObjectId,
   orderIds: arrayObjectId,
 });
-export default mongoose.model("Pharmacist", schema);
+export default new UnifiedModel(mongoose.model("Pharmacist", schema));

@@ -7,6 +7,7 @@ import {
   dataNumber,
 } from "../controllers/setup";
 import { articleStatuses } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   title: dataString,
@@ -33,4 +34,4 @@ const schema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("Article", schema);
+export default new UnifiedModel(mongoose.model("Article", schema));

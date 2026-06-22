@@ -13,6 +13,7 @@ import { getUser } from "../middleware/auth";
 import { sendRes } from "./setup";
 import Article from "../models/Article";
 import Order from "../models/Order";
+import mongoose from "mongoose";
 
 export async function getHomePageData(req: Request, res: Response) {
   const articleReadies = await getArticles();
@@ -134,7 +135,7 @@ export async function articleAction(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  await Article.findByIdAndUpdate(req.params.id, req.body);
+  await Article.findByIdAndUpdate(req.params.id.toString(), req.body);
   const articles = await getArticles();
   res.status(200).json(articles);
 }
@@ -149,7 +150,7 @@ export async function pharmacistAction(req: Request, res: Response) {
     return;
   }
   const pharmacist = await Pharmacist.findByIdAndUpdate(
-    req.params.id,
+    req.params.id.toString(),
     req.body,
   );
   const { pharmacies, pharmacists } = await loadAllPharmacyAndPharmacist();
@@ -165,7 +166,7 @@ export async function pharmacyAction(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  const pharmacyRaw = await Pharmacy.findByIdAndUpdate(req.params.id, req.body);
+  const pharmacyRaw = await Pharmacy.findByIdAndUpdate(req.params.id.toString(), req.body);
   if (!pharmacyRaw) {
     sendRes(res, false);
     return;
@@ -202,7 +203,7 @@ export async function getPharmacyDashboardData(req: Request, res: Response) {
     return;
   }
   const orders: OrderType[] = [];
-  const pharmacy = await Pharmacy.findById(user.roleId);
+  const pharmacy = await Pharmacy.findById(new mongoose.Types.ObjectId(user.roleId?.toString()));
   if (!pharmacy) {
     res.status(200).json({ orders, pharmacy });
     return;

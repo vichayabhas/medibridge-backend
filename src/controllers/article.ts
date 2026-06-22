@@ -55,7 +55,7 @@ export async function getArticles() {
   return articlesReady;
 }
 export async function getArticle(req: Request, res: Response) {
-  const article = await Article.findById(req.params.id);
+  const article = await Article.findById(req.params.id.toString());
   if (!article) {
     sendRes(res, false);
     return;

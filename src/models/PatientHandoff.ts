@@ -12,6 +12,7 @@ import {
   telemedicineChannels,
   patientHandoffStatuses,
 } from "./interface";
+import { UnifiedModel } from "./ModelFactory";
 
 const schema = new mongoose.Schema({
   userId: dataId,
@@ -63,4 +64,4 @@ const schema = new mongoose.Schema({
   chatIds: arrayObjectId,
 });
 
-export default mongoose.model("PatientHandoff", schema);
+export default new UnifiedModel(mongoose.model("PatientClipboard", schema));
