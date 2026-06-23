@@ -22,7 +22,6 @@ const schema = new mongoose.Schema({
     minlength: 6,
     select: false,
   },
-  avatarUrl: dataString,
   role: {
     type: String,
     enum: userRoles,

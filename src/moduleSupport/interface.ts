@@ -100,7 +100,7 @@ export type RegisterInput = {
   phone: string;
   password: string;
   role: UserRole;
-  avatarUrl: string;
+  // avatarUrl: string;
 };
 export interface ArticleReady {
   _id: Id;

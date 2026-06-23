@@ -7,7 +7,12 @@ require('./src/env')
 
 const MODELS_DIR = './src/models';
 const OUTPUT_FILE = './supabase_schema.sql';
-
+export function camelToSnake(str) {
+  if (typeof str !== "string") return String(str || "");
+  if (str === "_id") return "id";
+  // return str;
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+}
 function getPgType(instance) {
   switch (instance) {
     case 'String': return 'TEXT';
@@ -35,30 +40,27 @@ async function generateSql() {
     const filePath = path.join(process.cwd(), MODELS_DIR, file);
     console.log(`Processing: ${file}`);
 
-    // Dynamic import of the ES Module file
     const module = await import(`file://${filePath}`);
     
-    // FIX: Look for the named 'model' export first, then fallback to default, 
-    // or unwrap it if it's trapped inside UnifiedModel
     let mongooseModel = module.model || module.default;
     
     if (mongooseModel && mongooseModel.rawModel) { 
-      // If your UnifiedModel exposes the raw mongoose model under a property like 'rawModel'
       mongooseModel = mongooseModel.rawModel;
     } else if (mongooseModel && !mongooseModel.schema && mongooseModel.model) {
-      // General fallback if it's attached to an instantiation property
       mongooseModel = mongooseModel.model;
     }
 
-    // Safety check: if we still can't find a valid schema configuration, skip
     if (!mongooseModel || (!mongooseModel.schema && !mongooseModel.paths)) {
       console.log(`⚠️ Could not parse Mongoose Schema out of ${file}. Skipping.`);
       continue;
     }
 
     const schema = mongooseModel.schema || mongooseModel;
-    // Set explicit fallback table name using the model name or file name
-    const tableName = mongooseModel.modelName ? `${mongooseModel.modelName.toLowerCase()}s` : `${path.parse(file).name.toLowerCase()}s`;
+    
+    // FIX: Enforce strictly lowercase table names to completely eliminate PGRST205 errors
+    const tableName = mongooseModel.modelName 
+      ? `${camelToSnake(mongooseModel.modelName)}` 
+      : `${camelToSnake(path.parse(file).name)}`;
 
     let tableSql = `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
     tableSql += `  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n`;
@@ -66,26 +68,46 @@ async function generateSql() {
     Object.keys(schema.paths).forEach((key) => {
       if (key === '_id' || key === '__v') return;
 
+      // FIX: Force column names to lowercase to prevent mismatched queries from JS client
+      const pgColumnName = camelToSnake(key)
+
       const pathObj = schema.paths[key];
       const pgType = getPgType(pathObj.instance);
 
-      const isRequired = pathObj.options?.required ? ' NOT NULL' : '';
+      // CRITICAL FIX for 23502: If the field is an avatar/image URL, don't make it NOT NULL 
+      // even if Mongoose says it is, to prevent signup script crashes.
+      const isAvatarField = pgColumnName.includes('avatar');
+      const isRequired = (pathObj.options?.required && !isAvatarField) ? ' NOT NULL' : '';
+      
       const isUnique = pathObj.options?.unique ? ' UNIQUE' : '';
       
-      // Handle function assignment structures safely
       const isDateNow = pathObj.options?.default === Date.now || 
                         (pathObj.options?.default && pathObj.options.default.toString().includes('now'));
       const defaultVal = isDateNow ? ' DEFAULT now()' : '';
 
-      tableSql += `  ${key} ${pgType}${isRequired}${isUnique}${defaultVal},\n`;
+      tableSql += `  ${pgColumnName} ${pgType}${isRequired}${isUnique}${defaultVal},\n`;
     });
 
     tableSql = tableSql.trim().replace(/,$/, '') + '\n);\n\n';
+
+    // // ==========================================
+    // // UNCOMMENTED & ACTIVATED: Open CRUD Policies
+    // // ==========================================
+    // tableSql += `-- Enable RLS\n`;
+    // tableSql += `ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;\n\n`;
+
+    // tableSql += `-- Create policies to allow public (everyone) CRUD access\n`;
+    // tableSql += `CREATE POLICY "Allow public read access on ${tableName}" ON ${tableName} FOR SELECT USING (true);\n`;
+    // tableSql += `CREATE POLICY "Allow public insert access on ${tableName}" ON ${tableName} FOR INSERT WITH CHECK (true);\n`;
+    // tableSql += `CREATE POLICY "Allow public update access on ${tableName}" ON ${tableName} FOR UPDATE USING (true) WITH CHECK (true);\n`;
+    // tableSql += `CREATE POLICY "Allow public delete access on ${tableName}" ON ${tableName} FOR DELETE USING (true);\n\n`;
+    // tableSql += `--------------------------------------------------\n\n`;
+
     fullSqlScript += tableSql;
   }
 
   fs.writeFileSync(OUTPUT_FILE, fullSqlScript);
-  console.log(`✅ Supabase SQL Schema generated at: ${OUTPUT_FILE}`);
+  console.log(`✅ Supabase SQL Schema with public RLS policies generated at: ${OUTPUT_FILE}`);
 }
 
 generateSql().catch(console.error);

@@ -1,85 +1,85 @@
 -- Generated Supabase Migration Script
 
-CREATE TABLE IF NOT EXISTS articles (
+CREATE TABLE IF NOT EXISTS article (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   category TEXT NOT NULL,
-  coverImage TEXT NOT NULL,
+  cover_image TEXT NOT NULL,
   excerpt TEXT NOT NULL,
   body TEXT NOT NULL,
-  authorId UUID NOT NULL,
-  isAIGenerated BOOLEAN,
+  author_id UUID NOT NULL,
+  is_aigenerated BOOLEAN,
   tags JSONB,
   views NUMERIC,
   status TEXT,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS consultations (
+CREATE TABLE IF NOT EXISTS consultation (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  triageSessionId UUID NOT NULL,
-  userId UUID NOT NULL,
-  pharmacistId UUID NOT NULL,
-  pharmacyId UUID NOT NULL,
+  triage_session_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  pharmacist_id UUID NOT NULL,
+  pharmacy_id UUID NOT NULL,
   status TEXT,
   messages JSONB,
-  approvedProducts JSONB,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  approved_products JSONB,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE IF NOT EXISTS notification (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  userId TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   type TEXT NOT NULL,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   read BOOLEAN,
-  actionUrl TEXT NOT NULL,
-  createAt TIMESTAMPTZ DEFAULT now()
+  action_url TEXT NOT NULL,
+  create_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS order (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  consultationId UUID NOT NULL,
-  userId UUID NOT NULL,
-  pharmacyId UUID NOT NULL,
-  pharmacistId UUID NOT NULL,
+  consultation_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  pharmacy_id UUID NOT NULL,
+  pharmacist_id UUID NOT NULL,
   fulfillment TEXT NOT NULL,
   status TEXT,
   subtotal NUMERIC,
-  deliveryFee NUMERIC,
+  delivery_fee NUMERIC,
   total NUMERIC,
-  otpCode TEXT NOT NULL,
-  estimatedTime TEXT NOT NULL,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  otp_code TEXT NOT NULL,
+  estimated_time TEXT NOT NULL,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS orderitems (
+CREATE TABLE IF NOT EXISTS order_item (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  orderId UUID NOT NULL,
-  productId UUID NOT NULL,
+  order_id UUID NOT NULL,
+  product_id UUID NOT NULL,
   name TEXT NOT NULL,
   quantity NUMERIC NOT NULL,
   price NUMERIC NOT NULL,
   instructions TEXT
 );
 
-CREATE TABLE IF NOT EXISTS patientclipboards (
+CREATE TABLE IF NOT EXISTS patient_clipboard (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  userId UUID NOT NULL,
+  user_id UUID NOT NULL,
   name TEXT,
-  isDefault BOOLEAN,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  is_default BOOLEAN,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS patienthandoffs (
+CREATE TABLE IF NOT EXISTS patient_handoff (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  userId UUID NOT NULL,
-  patientName TEXT NOT NULL,
+  user_id UUID NOT NULL,
+  patient_name TEXT NOT NULL,
   age NUMERIC,
   gender TEXT NOT NULL,
   symptoms JSONB,
@@ -87,174 +87,173 @@ CREATE TABLE IF NOT EXISTS patienthandoffs (
   conditions JSONB,
   medications JSONB,
   allergies JSONB,
-  patientSummary TEXT NOT NULL,
-  aiSummary TEXT NOT NULL,
-  pharmacyId UUID NOT NULL,
-  pharmacistId UUID NOT NULL,
-  appointmentTime TIMESTAMPTZ NOT NULL,
+  patient_summary TEXT NOT NULL,
+  ai_summary TEXT NOT NULL,
+  pharmacy_id UUID NOT NULL,
+  pharmacist_id UUID NOT NULL,
+  appointment_time TIMESTAMPTZ NOT NULL,
   fulfillment TEXT NOT NULL,
-  suggestedAction TEXT NOT NULL,
-  requestType TEXT NOT NULL,
-  telemedicineChannel TEXT NOT NULL,
-  telemedicinePatientNote TEXT NOT NULL,
-  telemedicineCollectedData JSONB,
-  telemedicineRequestTime TIMESTAMPTZ NOT NULL,
-  telemedicineStartTime TIMESTAMPTZ NOT NULL,
-  telemedicineEndTime TIMESTAMPTZ NOT NULL,
-  consultDurationMinutes NUMERIC,
+  suggested_action TEXT NOT NULL,
+  request_type TEXT NOT NULL,
+  telemedicine_channel TEXT NOT NULL,
+  telemedicine_patient_note TEXT NOT NULL,
+  telemedicine_collected_data JSONB,
+  telemedicine_request_time TIMESTAMPTZ NOT NULL,
+  telemedicine_start_time TIMESTAMPTZ NOT NULL,
+  telemedicine_end_time TIMESTAMPTZ NOT NULL,
+  consult_duration_minutes NUMERIC,
   status TEXT NOT NULL,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now(),
-  telemedicineRoomId UUID,
-  chatIds JSONB
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now(),
+  telemedicine_room_id UUID,
+  chat_ids JSONB
 );
 
-CREATE TABLE IF NOT EXISTS patientprofiles (
+CREATE TABLE IF NOT EXISTS patient_profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  firstName TEXT NOT NULL,
-  lastName TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
   gender TEXT NOT NULL,
   age NUMERIC NOT NULL,
   weight NUMERIC NOT NULL,
   allergies JSONB,
   conditions JSONB,
-  currentMedications JSONB,
-  isPregnant BOOLEAN,
-  isBreastfeeding BOOLEAN,
-  bloodType TEXT NOT NULL,
+  current_medications JSONB,
+  is_pregnant BOOLEAN,
+  is_breastfeeding BOOLEAN,
+  blood_type TEXT NOT NULL,
   symptoms TEXT NOT NULL,
-  patientHandoffIds JSONB,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now(),
-  userId UUID NOT NULL
+  patient_handoff_ids JSONB,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now(),
+  user_id UUID NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS pharmacists (
+CREATE TABLE IF NOT EXISTS pharmacist (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pharmacyId UUID NOT NULL,
+  pharmacy_id UUID NOT NULL,
   name TEXT NOT NULL,
-  licenseNo TEXT NOT NULL,
-  avatarUrl TEXT NOT NULL,
+  license_no TEXT NOT NULL,
+  avatar_url TEXT,
   availability TEXT,
   rating NUMERIC,
-  reviewCount NUMERIC,
+  review_count NUMERIC,
   specialties JSONB,
-  methodRates JSONB,
-  bookedSlots JSONB,
-  consultDurations JSONB,
+  method_rates JSONB,
+  booked_slots JSONB,
+  consult_durations JSONB,
   experience NUMERIC,
   workplace TEXT,
   languages JSONB,
   insurance JSONB,
   bio TEXT,
-  nextAvailable TEXT,
-  verificationStatus TEXT,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now(),
-  articlesIds JSONB,
-  patientHandoffIds JSONB,
-  orderIds JSONB
+  next_available TEXT,
+  verification_status TEXT,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now(),
+  articles_ids JSONB,
+  patient_handoff_ids JSONB,
+  order_ids JSONB
 );
 
-CREATE TABLE IF NOT EXISTS pharmacys (
+CREATE TABLE IF NOT EXISTS pharmacy (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   address TEXT NOT NULL,
   latitude NUMERIC NOT NULL,
   longitude NUMERIC NOT NULL,
   phone TEXT NOT NULL,
-  openingHours JSONB,
-  verificationStatus TEXT,
+  opening_hours JSONB,
+  verification_status TEXT,
   rating NUMERIC,
-  reviewCount NUMERIC,
-  imageUrl TEXT NOT NULL,
+  review_count NUMERIC,
+  image_url TEXT NOT NULL,
   services JSONB,
-  hasDelivery BOOLEAN,
-  managerId UUID NOT NULL,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now(),
-  pharmacistIds JSONB
+  has_delivery BOOLEAN,
+  manager_id UUID NOT NULL,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now(),
+  pharmacist_ids JSONB
 );
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS product (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pharmacyId UUID NOT NULL,
+  pharmacy_id UUID NOT NULL,
   name TEXT NOT NULL,
-  genericName TEXT NOT NULL,
+  generic_name TEXT NOT NULL,
   category TEXT NOT NULL,
   description TEXT NOT NULL,
   price NUMERIC NOT NULL,
-  imageUrl TEXT NOT NULL,
-  dosageForm TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  dosage_form TEXT NOT NULL,
   strength TEXT NOT NULL,
   manufacturer TEXT NOT NULL,
-  inStock BOOLEAN,
-  stockQuantity NUMERIC,
+  in_stock BOOLEAN,
+  stock_quantity NUMERIC,
   warnings JSONB,
-  sideEffects JSONB,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  side_effects JSONB,
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE IF NOT EXISTS profile (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
-  avatarUrl TEXT NOT NULL,
   role TEXT,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now(),
-  roleId UUID
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now(),
+  role_id UUID
 );
 
-CREATE TABLE IF NOT EXISTS reviews (
+CREATE TABLE IF NOT EXISTS review (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  userId UUID NOT NULL,
-  userName TEXT NOT NULL,
-  targetType TEXT NOT NULL,
-  targetId UUID NOT NULL,
-  consultationId UUID NOT NULL,
+  user_id UUID NOT NULL,
+  user_name TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id UUID NOT NULL,
+  consultation_id UUID NOT NULL,
   rating NUMERIC NOT NULL,
   comment TEXT NOT NULL,
-  createAt TIMESTAMPTZ DEFAULT now()
+  create_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS telemedicinemessages (
+CREATE TABLE IF NOT EXISTS telemedicine_message (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  handoffId UUID NOT NULL,
-  senderType TEXT NOT NULL,
-  senderName TEXT NOT NULL,
+  handoff_id UUID NOT NULL,
+  sender_type TEXT NOT NULL,
+  sender_name TEXT NOT NULL,
   content TEXT NOT NULL,
-  messageType TEXT,
-  createdAt TIMESTAMPTZ DEFAULT now()
+  message_type TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS telemedicinerooms (
+CREATE TABLE IF NOT EXISTS telemedicine_room (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  taskId UUID NOT NULL,
-  handoffId UUID NOT NULL,
-  roomIdentifier TEXT NOT NULL,
-  roomUrl TEXT NOT NULL,
-  pharmacistName TEXT NOT NULL,
-  expiresAt TIMESTAMPTZ,
-  enableRecording BOOLEAN,
-  maxParticipants NUMERIC,
+  task_id UUID NOT NULL,
+  handoff_id UUID NOT NULL,
+  room_identifier TEXT NOT NULL,
+  room_url TEXT NOT NULL,
+  pharmacist_name TEXT NOT NULL,
+  expires_at TIMESTAMPTZ,
+  enable_recording BOOLEAN,
+  max_participants NUMERIC,
   status TEXT,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS triagesessions (
+CREATE TABLE IF NOT EXISTS triage_session (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  userId UUID NOT NULL,
+  user_id UUID NOT NULL,
   symptoms JSONB,
-  redFlags JSONB,
-  hasRedFlag BOOLEAN,
+  red_flags JSONB,
+  has_red_flag BOOLEAN,
   summary JSONB,
   status TEXT,
-  createAt TIMESTAMPTZ DEFAULT now(),
-  updateAt TIMESTAMPTZ DEFAULT now()
+  create_at TIMESTAMPTZ DEFAULT now(),
+  update_at TIMESTAMPTZ DEFAULT now()
 );
 

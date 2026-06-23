@@ -7,6 +7,7 @@ import {
   updateProfile,
   getPharmacistData,
   updatePharmacistProfile,
+  getPatientProfileData,
 } from "../controllers/user";
 import { protect } from "../middleware/auth";
 // import { protect } from "../middleware/auth";
@@ -20,5 +21,6 @@ router.post("/checkPassword/", checkPassword); //
 router.put("/updateProfile/", protect, updateProfile);
 router.get("/getPharmacistData/", protect, getPharmacistData);
 router.put("/updatePharmacistProfile/", updatePharmacistProfile);
+router.get("/getPatientProfileData/", getPatientProfileData);
 
 export default router;

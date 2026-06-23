@@ -14,7 +14,7 @@ let supabase: SupabaseClient | null = null;
 
 if (!dbConfig.isMongo) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
@@ -152,7 +152,8 @@ export class UnifiedModel<M extends mongoose.Model<any>> {
       return doc.toObject() as ExtractModelType<M>;
     } else {
       const supabasePayload = toSnakeCaseDeep(data);
-      const { data: result, error } = await supabase!.from(this.table).insert(supabasePayload).select().single();
+      console.log(supabasePayload)
+      const { data: result, error } = await supabase!.from(this.table).insert({...supabasePayload,avatarurl:'-'}).select().single();
       if (error) throw error;
       return toCamelCaseDeep<ExtractModelType<M>>(result);
     }

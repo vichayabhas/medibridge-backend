@@ -24,6 +24,7 @@ import Pharmacy from "../models/Pharmacy";
 import PatientHandoff from "../models/PatientHandoff";
 import TelemededicineMessage from "../models/TelemededicineMessage";
 import TelemedicineRoom from "../models/TelemedicineRoom";
+import { isMongo } from "../moduleSupport/configTypes";
 type Id = mongoose.Types.ObjectId;
 export async function register(req: express.Request, res: express.Response) {
   try {
@@ -33,7 +34,7 @@ export async function register(req: express.Request, res: express.Response) {
       password,
       phone,
       role,
-      avatarUrl,
+      // avatarUrl,
     }: //private
     RegisterInput = req.body;
     const user = await Profile.create({
@@ -42,9 +43,9 @@ export async function register(req: express.Request, res: express.Response) {
       phone,
       role,
       name,
-      avatarUrl,
+      // avatarUrl,
     });
-    sendTokenResponse(user._id, 200, res);
+    sendTokenResponse(user._id.toString(), 200, res);
   } catch (err) {
     res.status(400).json({
       success: false,
@@ -65,6 +66,7 @@ export async function login(req: express.Request, res: express.Response) {
   const user = await Profile.findOne({
     email,
   }).select("+password");
+  console.log(user);
   if (!user) {
     res.status(400).json({
       success: false,
@@ -73,21 +75,28 @@ export async function login(req: express.Request, res: express.Response) {
     return;
   }
   const isMatch = await bcrypt.compare(password, user.password);
+  const isSame = user.password == password;
+  const isPass = (isMatch && isMongo) || (isSame && !isMongo);
+  console.log(isSame);
 
-  if (!isMatch) {
+  console.log(isMongo);
+  console.log(isPass);
+
+  if (!isPass) {
     res.status(401).json({
       success: false,
       msg: "Invalid credentials",
     });
     return;
   }
-  sendTokenResponse(user._id, 200, res);
+  sendTokenResponse(user._id.toString(), 200, res);
 }
 const sendTokenResponse = (
-  id: Id,
+  id: string,
   statusCode: number,
   res: express.Response,
 ) => {
+  console.log(id)
   const token = jwt.sign({ id }, process.env.JWT_SECRET as jwt.Secret, {
     expiresIn: parseInt(process.env.JWT_EXPIRE || "5"),
   });
@@ -105,6 +114,7 @@ const sendTokenResponse = (
 };
 export async function getMe(req: express.Request, res: express.Response) {
   const user = await getUser(req);
+  console.log(user)
   res.status(200).json(user);
 }
 export async function checkPassword(
@@ -136,10 +146,10 @@ export async function updateProfile(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
-  await Profile.findByIdAndUpdate(user._id,data)
+  await Profile.findByIdAndUpdate(user._id, data);
   // const user2 = await Profile.findById(user._id);
   // res.status(200).json({});
-  sendTokenResponse(user._id, 200, res);
+  sendTokenResponse(user._id.toString(), 200, res);
 }
 export async function getPharmacistData(req: Request, res: Response) {
   const user = await getUser(req);
@@ -282,7 +292,7 @@ export async function createOrUpdatePatientProfile(
   if (!patient) {
     patient = await PatientProfile.create({ ...body, userId: user._id });
     // await user.updateOne({ roleId: patient._id });
-    await Profile.findByIdAndUpdate(user._id,{roleId:patient._id})
+    await Profile.findByIdAndUpdate(user._id, { roleId: patient._id });
   } else {
     await patient.updateOne(body);
   }
@@ -294,6 +304,7 @@ export async function getPatientProfileData(req: Request, res: Response) {
     sendRes(res, false);
     return;
   }
+  console.log(user);
   const consultationDatas: ConsultationData[] = [];
   const patient = await getPatientProfileFromUserId(user._id);
   if (!patient) {
